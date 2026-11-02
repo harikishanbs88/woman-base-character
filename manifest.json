@@ -1,0 +1,51 @@
+{
+ "slug": "woman-base-character",
+ "triangles": 305702,
+ "texture_px": 4096,
+ "triangles_light": 152851,
+ "texture_px_light": 1024,
+ "files": {
+  "glb": {
+   "name": "woman-base-character.glb",
+   "bytes": 13261824
+  },
+  "blend": {
+   "name": "woman-base-character.blend",
+   "bytes": 15728937
+  },
+  "fbx": {
+   "name": "woman-base-character.fbx",
+   "bytes": 20927292
+  },
+  "obj": {
+   "name": "woman-base-character-obj.zip",
+   "bytes": 10459811
+  },
+  "usdz": {
+   "name": "woman-base-character.usdz",
+   "bytes": 19416848
+  },
+  "glb_light": {
+   "name": "woman-base-character-light.glb",
+   "bytes": 4864288
+  },
+  "fbx_light": {
+   "name": "woman-base-character-light.fbx",
+   "bytes": 9494092
+  }
+ },
+ "extras": {
+  "license": "CC0-1.0",
+  "source": "grab3d.com",
+  "dimensions_m": "0.903 x 0.303 x 1.680",
+  "triangles": 305702,
+  "variant": "download",
+  "generator": "Created by grab3d",
+  "created": "2026-10-29"
+ },
+ "origin": {
+  "method": "ai-assisted",
+  "detail": "Base mesh and textures generated with an AI image-to-3D tool (Meshy), then cleaned up, scaled, textured and checked in Blender.",
+  "ai_content": true
+ }
+}

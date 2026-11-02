@@ -1,7 +1,4 @@
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.DS_Store
+# Local scratch & IDE files
+.system_generated/
+scratch/
 *.log
-.env

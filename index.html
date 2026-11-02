@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Woman Base Mesh: Free Rigged 3D Model (CC0, GLB, FBX) | Grab3D</title>
+  <meta name="description" content="Free Woman Base Mesh 3D model, rigged with walk and run animations. Neutral woman base mesh. CC0 public domain, download as GLB, FBX, BLEND, USDZ and OBJ.">
+  <meta name="theme-color" content="#0a0c11">
+  <meta name="color-scheme" content="dark">
+
+  <!-- Google Fonts: Space Grotesk & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Google Model Viewer for robust 3D WebGL rendering & animations -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+
+  <style>
+    :root {
+      --bg-canvas: #090b0e;
+      --bg-surface: #101318;
+      --bg-elevated: #161b22;
+      --bg-card: rgba(22, 27, 34, 0.75);
+      --bg-glass: rgba(18, 22, 29, 0.65);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --border-highlight: rgba(179, 220, 52, 0.4);
+
+      --accent: #b4dc34;
+      --accent-hover: #c4ec44;
+      --accent-glow: rgba(180, 220, 52, 0.25);
+      --accent-ink: #0d1203;
+
+      --text-main: #f0f3f6;
+      --text-muted: #9aa5b5;
+      --text-subtle: #626e7e;
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-heading: 'Space Grotesk', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-lg: 0 16px 40px rgba(0,0,0,0.6);
+      --shadow-glow: 0 0 25px rgba(180, 220, 52, 0.15);
+      --transition-fast: 0.15s ease;
+      --transition-base: 0.25s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient background gradient glow */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20vw;
+      right: -10vw;
+      width: 50vw;
+      height: 50vw;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(180, 220, 52, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navigation Header */
+    header.site-header {
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(9, 11, 14, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-logo svg {
+      filter: drop-shadow(0 2px 6px rgba(180, 220, 52, 0.4));
+    }
+
+    .brand-logo .wordmark {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-logo .wordmark span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      list-style: none;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--text-main);
+    }
+
+    .header-badge {
+      background: rgba(180, 220, 52, 0.12);
+      border: 1px solid rgba(180, 220, 52, 0.28);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 24px 0 16px;
+      font-size: 0.85rem;
+      color: var(--text-subtle);
+    }
+
+    .breadcrumb a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+
+    .breadcrumb a:hover {
+      color: var(--accent);
+    }
+
+    .breadcrumb-sep {
+      opacity: 0.5;
+    }
+
+    /* Main Page Hero Grid */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 36px;
+      margin-bottom: 60px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 3D Stage Section */
+    .stage-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+    }
+
+    .stage-header {
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .stage-file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .window-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #333a44;
+    }
+    .window-dots span:nth-child(1) { background: #ff5f56; }
+    .window-dots span:nth-child(2) { background: #ffbd2e; }
+    .window-dots span:nth-child(3) { background: #27c93f; }
+
+    .stage-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      gap: 2px;
+    }
+
+    .stage-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-fast);
+    }
+
+    .stage-tab-btn.active {
+      background: var(--bg-elevated);
+      color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* 3D Viewer Container */
+    .viewer-box {
+      width: 100%;
+      height: 600px;
+      background: radial-gradient(circle at center, #1b2029 0%, #0d1016 100%);
+      position: relative;
+    }
+
+    @media (max-width: 768px) {
+      .viewer-box {
+        height: 440px;
+      }
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      --poster-color: transparent;
+      outline: none;
+    }
+
+    /* Custom Loading Spinner */
+    .viewer-loading-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(13, 16, 22, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .viewer-loading-overlay.hidden {
+      opacity: 0;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid rgba(180, 220, 52, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 14px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* On-canvas Controls Overlay */
+    .canvas-overlay-top {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .variant-selector-pills {
+      pointer-events: auto;
+      display: flex;
+      background: rgba(16, 20, 26, 0.85);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(10px);
+      border-radius: 30px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .pill-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-fast);
+    }
+
+    .pill-btn:hover {
+      color: var(--text-main);
+    }
+
+    .pill-btn.active {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .viewer-action-btns {
+      pointer-events: auto;
+      display: flex;
+      gap: 6px;
+    }
+
+    .tool-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: rgba(16, 20, 26, 0.85);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(10px);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .tool-btn:hover {
+      color: #fff;
+      border-color: var(--border-strong);
+      background: var(--bg-elevated);
+    }
+
+    .tool-btn.active {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Animation Controls Bar */
+    .stage-anim-bar {
+      background: var(--bg-elevated);
+      border-top: 1px solid var(--border-subtle);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .anim-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .anim-tag-label {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      margin-right: 6px;
+    }
+
+    .anim-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-fast);
+    }
+
+    .anim-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-strong);
+    }
+
+    .anim-btn.active {
+      background: rgba(180, 220, 52, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .env-lighting-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .env-select {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Details & Download Column */
+    .details-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .title-block h1 {
+      font-family: var(--font-heading);
+      font-size: 2.4rem;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .title-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+
+    .badge-accent {
+      background: rgba(180, 220, 52, 0.12);
+      border-color: rgba(180, 220, 52, 0.3);
+      color: var(--accent);
+    }
+
+    .badge-purple {
+      background: rgba(186, 133, 255, 0.12);
+      border-color: rgba(186, 133, 255, 0.3);
+      color: #ba85ff;
+    }
+
+    .badge-blue {
+      background: rgba(77, 171, 247, 0.12);
+      border-color: rgba(77, 171, 247, 0.3);
+      color: #4dabf7;
+    }
+
+    .badge-gray {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--border-subtle);
+      color: var(--text-muted);
+    }
+
+    /* Download Card */
+    .download-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .dl-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .dl-card-head h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dl-price-tag {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(180, 220, 52, 0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      border: 1px solid rgba(180, 220, 52, 0.25);
+    }
+
+    /* Format Selection Matrix */
+    .selector-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-subtle);
+      margin-bottom: 8px;
+    }
+
+    .segmented-control {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      background: rgba(0, 0, 0, 0.35);
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 18px;
+      gap: 4px;
+    }
+
+    .seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transition: all var(--transition-fast);
+    }
+
+    .seg-btn small {
+      font-size: 0.7rem;
+      font-weight: 400;
+      opacity: 0.7;
+    }
+
+    .seg-btn.active {
+      background: var(--bg-elevated);
+      color: var(--accent);
+      border: 1px solid rgba(180, 220, 52, 0.3);
+    }
+
+    .formats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .format-tile {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: left;
+      position: relative;
+    }
+
+    .format-tile:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--border-strong);
+    }
+
+    .format-tile.active {
+      background: rgba(180, 220, 52, 0.08);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(180, 220, 52, 0.15);
+    }
+
+    .fmt-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .fmt-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .fmt-size {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .fmt-desc {
+      font-size: 0.72rem;
+      color: var(--text-subtle);
+      line-height: 1.3;
+    }
+
+    /* Primary Download Button */
+    .btn-download-primary {
+      width: 100%;
+      background: var(--accent);
+      color: var(--accent-ink);
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 16px 24px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      transition: all var(--transition-fast);
+    }
+
+    .btn-download-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(180, 220, 52, 0.35);
+    }
+
+    .btn-download-primary:active {
+      transform: translateY(0);
+    }
+
+    .license-notice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-size: 0.8rem;
+      color: var(--text-subtle);
+    }
+
+    .license-notice a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* Direct Mirrors Drawer */
+    .mirrors-group {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .mirrors-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-subtle);
+      margin-bottom: 10px;
+    }
+
+    .links-compact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mirror-pill {
+      font-size: 0.74rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+
+    .mirror-pill:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Content Tabs & Specs Sections */
+    .section-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+    }
+
+    .spec-key {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--text-subtle);
+      letter-spacing: 0.05em;
+    }
+
+    .spec-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .spec-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Size Comparison Visualizer */
+    .size-compare-box {
+      margin-top: 24px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .size-svg-wrap {
+      max-width: 320px;
+      width: 100%;
+    }
+
+    .size-legend {
+      display: flex;
+      gap: 20px;
+      margin-top: 14px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-box {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    /* Engine Integration Accordion */
+    .engine-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .engine-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+
+    .engine-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .engine-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .engine-fmt {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+    }
+
+    .engine-card p {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Tags & Badges */
+    .tags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+      list-style: none;
+    }
+
+    .tag-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+
+    .tag-chip:hover {
+      background: rgba(180, 220, 52, 0.1);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Footer */
+    footer.site-footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 40px 0;
+      margin-top: 60px;
+      text-align: center;
+      color: var(--text-subtle);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="https://grab3d.com/" class="brand-logo" aria-label="Grab3D">
+        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 2.2 28.4 9.3v13.4L16 29.8 3.6 22.7V9.3Z" fill="#b4dc34"></path>
+          <path d="M16 16 28.4 9.3v13.4L16 29.8Z" fill="#9fc62a"></path>
+          <path d="M16 16 3.6 9.3v13.4L16 29.8Z" fill="#b3dc34"></path>
+          <path d="M3.6 9.3 16 16l12.4-6.7M16 16v13.8" fill="none" stroke="#0d1203" stroke-width="1.6" stroke-linejoin="round"></path>
+          <path d="M16 2.2 28.4 9.3v13.4L16 29.8 3.6 22.7V9.3Z" fill="none" stroke="#0d1203" stroke-width="1.6" stroke-linejoin="round"></path>
+        </svg>
+        <span class="wordmark">Grab<span>3D</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="https://grab3d.com/models/" class="nav-link active">Models</a></li>
+        <li><a href="https://grab3d.com/models/characters/" class="nav-link">Characters</a></li>
+        <li><a href="https://grab3d.com/free-rigged-3d-models/" class="nav-link">Rigged</a></li>
+        <li><a href="https://grab3d.com/license/" class="nav-link">License</a></li>
+        <li><span class="header-badge">CC0 Public Domain</span></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="https://grab3d.com/">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="https://grab3d.com/models/">Models</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="https://grab3d.com/models/characters/">Characters & People</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Woman Base Mesh</span>
+    </nav>
+
+    <!-- Hero 3D Stage + Download Grid -->
+    <div class="hero-grid">
+      
+      <!-- Left Column: Interactive 3D Canvas -->
+      <section class="stage-card" aria-label="3D Model Viewer">
+        <div class="stage-header">
+          <div class="stage-file-info">
+            <div class="window-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span id="active-filename">woman-base-character-rigged.glb</span>
+          </div>
+
+          <div class="stage-tabs">
+            <button type="button" class="stage-tab-btn active" id="tab-3d-view">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+              Interactive 3D
+            </button>
+            <button type="button" class="stage-tab-btn" id="tab-reset-cam">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              Reset View
+            </button>
+          </div>
+        </div>
+
+        <div class="viewer-box">
+          <!-- Loading Indicator -->
+          <div class="viewer-loading-overlay" id="loading-overlay">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loading-status">Loading 3D Model...</div>
+          </div>
+
+          <!-- Canvas Top Pill Controls -->
+          <div class="canvas-overlay-top">
+            <!-- Model Variant Selector -->
+            <div class="variant-selector-pills">
+              <button type="button" class="pill-btn active" data-variant="rigged">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
+                Rigged (Animated)
+              </button>
+              <button type="button" class="pill-btn" data-variant="full">
+                Full 4K Static
+              </button>
+              <button type="button" class="pill-btn" data-variant="light">
+                Lightweight
+              </button>
+            </div>
+
+            <!-- View Tools -->
+            <div class="viewer-action-btns">
+              <button type="button" class="tool-btn" id="btn-autorotate" title="Toggle Auto-Rotate">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              </button>
+              <button type="button" class="tool-btn" id="btn-fullscreen" title="Fullscreen">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Google Model Viewer Component -->
+          <model-viewer
+            id="character-viewer"
+            src="rigged.glb"
+            alt="Neutral woman base mesh in A-pose with taupe sports top and charcoal shorts"
+            camera-controls
+            touch-action="pan-y"
+            shadow-intensity="1.2"
+            shadow-softness="0.8"
+            exposure="1.0"
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            camera-orbit="0deg 78deg 3.4m"
+            min-camera-orbit="auto auto 1.2m"
+            max-camera-orbit="auto auto 6m"
+            animation-name="walk"
+            autoplay
+          >
+          </model-viewer>
+        </div>
+
+        <!-- Animation Controls Bar -->
+        <div class="stage-anim-bar">
+          <div class="anim-buttons" id="anim-controls-group">
+            <span class="anim-tag-label">Animation:</span>
+            <button type="button" class="anim-btn active" data-anim="walk">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Walk Cycle
+            </button>
+            <button type="button" class="anim-btn" data-anim="run">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Run Cycle
+            </button>
+            <button type="button" class="anim-btn" data-anim="none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"/></svg>
+              Static (A-Pose)
+            </button>
+          </div>
+
+          <!-- Environment Lighting Selection -->
+          <div class="env-lighting-group">
+            <span class="anim-tag-label">Lighting:</span>
+            <select class="env-select" id="env-select" aria-label="Environment Lighting">
+              <option value="neutral">Studio Neutral</option>
+              <option value="warm">Warm Sunlight</option>
+              <option value="cool">Cool Daylight</option>
+              <option value="dark">High Contrast Dark</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Model Information & Download Center -->
+      <section class="details-col" aria-label="Download and Model Details">
+        <div class="title-block">
+          <h1>Woman Base Mesh</h1>
+          
+          <div class="title-badges">
+            <span class="badge badge-accent">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg>
+              High Detail Tier
+            </span>
+            <span class="badge badge-purple">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
+              Rigged & Animated
+            </span>
+            <span class="badge badge-blue">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              CC0 Public Domain
+            </span>
+            <span class="badge badge-gray">305k ▲ Polygons</span>
+          </div>
+
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 8px;">
+            A neutral, anatomically accurate female base character standing 1.68m tall in a relaxed A-pose. Includes taupe sports top, charcoal shorts, bare feet, clean topology, PBR textures, and a full humanoid skeleton with walk and run cycles.
+          </p>
+        </div>
+
+        <!-- Download Card -->
+        <div class="download-card">
+          <div class="dl-card-head">
+            <h2>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download Asset
+            </h2>
+            <span class="dl-price-tag">$0 · Free CC0</span>
+          </div>
+
+          <!-- Version Segment -->
+          <div class="selector-label">1. Choose Version</div>
+          <div class="segmented-control" id="version-selector">
+            <button type="button" class="seg-btn active" data-v="rigged">
+              <span>Rigged Character</span>
+              <small>Skeleton + Walk & Run</small>
+            </button>
+            <button type="button" class="seg-btn" data-v="static">
+              <span>Static Mesh</span>
+              <small>Standard A-Pose</small>
+            </button>
+          </div>
+
+          <!-- Quality Segment (for static) -->
+          <div id="quality-selector-wrap" style="display: none;">
+            <div class="selector-label">Quality Level</div>
+            <div class="segmented-control">
+              <button type="button" class="seg-btn active" data-q="full">
+                <span>Full Quality</span>
+                <small>306k ▲ · 4K PBR</small>
+              </button>
+              <button type="button" class="seg-btn" data-q="light">
+                <span>Light</span>
+                <small>153k ▲ · 1K Maps</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Format Matrix -->
+          <div class="selector-label">2. Select Format</div>
+          <div class="formats-grid" id="formats-matrix">
+            <div class="format-tile active" data-fmt="glb">
+              <div class="fmt-top">
+                <span class="fmt-name">GLB</span>
+                <span class="fmt-size" id="size-glb">12 MB</span>
+              </div>
+              <span class="fmt-desc">glTF Binary · Unity, Godot, Blender, Web</span>
+            </div>
+
+            <div class="format-tile" data-fmt="fbx">
+              <div class="fmt-top">
+                <span class="fmt-name">FBX</span>
+                <span class="fmt-size" id="size-fbx">18 MB</span>
+              </div>
+              <span class="fmt-desc">Unreal Engine, Unity, Maya, 3ds Max</span>
+            </div>
+
+            <div class="format-tile" data-fmt="blend">
+              <div class="fmt-top">
+                <span class="fmt-name">BLEND</span>
+                <span class="fmt-size" id="size-blend">13 MB</span>
+              </div>
+              <span class="fmt-desc">Native Blender 3.x / 4.x project file</span>
+            </div>
+
+            <div class="format-tile" data-fmt="usdz" id="tile-usdz" style="display: none;">
+              <div class="fmt-top">
+                <span class="fmt-name">USDZ</span>
+                <span class="fmt-size" id="size-usdz">19 MB</span>
+              </div>
+              <span class="fmt-desc">Apple AR Quick Look, Reality Composer</span>
+            </div>
+
+            <div class="format-tile" data-fmt="obj-zip" id="tile-obj" style="display: none;">
+              <div class="fmt-top">
+                <span class="fmt-name">OBJ (ZIP)</span>
+                <span class="fmt-size" id="size-obj">10 MB</span>
+              </div>
+              <span class="fmt-desc">OBJ + MTL + Textures in one ZIP archive</span>
+            </div>
+          </div>
+
+          <!-- Main Download CTA Button -->
+          <a
+            id="main-download-btn"
+            class="btn-download-primary"
+            href="https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.glb"
+            download="woman-base-character-rigged.glb"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="btn-download-text">Download Rigged GLB (12 MB)</span>
+          </a>
+
+          <div class="license-notice">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+            <span>CC0: No login required · 100% royalty-free for commercial use</span>
+          </div>
+
+          <!-- Direct Mirror Links -->
+          <div class="mirrors-group">
+            <div class="mirrors-title">Direct Grab3D Source Files (Unmanipulated)</div>
+            <div class="links-compact">
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character.glb" download>Static GLB (13MB)</a>
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.glb" download>Rigged GLB (12MB)</a>
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character.fbx" download>Static FBX (20MB)</a>
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.fbx" download>Rigged FBX (18MB)</a>
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character.blend" download>Blend (15MB)</a>
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character.usdz" download>USDZ (19MB)</a>
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character-obj.zip" download>OBJ.zip (10MB)</a>
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/LICENSE.txt" target="_blank">LICENSE.txt</a>
+              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/manifest.json" target="_blank">manifest.json</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Technical Details & Specifications -->
+    <section class="section-block">
+      <h2 class="section-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Technical Specifications
+      </h2>
+
+      <div class="specs-grid">
+        <div class="spec-item">
+          <span class="spec-key">Quality Tier</span>
+          <span class="spec-value" style="color: var(--accent);">High Detail</span>
+          <span class="spec-sub">High-res PBR, 4K textures, rigged</span>
+        </div>
+
+        <div class="spec-item">
+          <span class="spec-key">Geometry / Triangles</span>
+          <span class="spec-value">305,702 ▲</span>
+          <span class="spec-sub">153k ▲ in lightweight variant</span>
+        </div>
+
+        <div class="spec-item">
+          <span class="spec-key">Real-World Dimensions</span>
+          <span class="spec-value">0.90 × 0.30 × 1.68 m</span>
+          <span class="spec-sub">Width × Depth × Height</span>
+        </div>
+
+        <div class="spec-item">
+          <span class="spec-key">PBR Texture Maps</span>
+          <span class="spec-value">4K UHD Maps</span>
+          <span class="spec-sub">Albedo, Roughness, Metallic, Normal</span>
+        </div>
+
+        <div class="spec-item">
+          <span class="spec-key">Rig & Animations</span>
+          <span class="spec-value">Humanoid Skeleton</span>
+          <span class="spec-sub">Walk cycle & Run cycle baked takes</span>
+        </div>
+
+        <div class="spec-item">
+          <span class="spec-key">License</span>
+          <span class="spec-value"><a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" style="color: var(--accent); text-decoration: none;">CC0 1.0 Universal</a></span>
+          <span class="spec-sub">Public Domain · No attribution required</span>
+        </div>
+      </div>
+
+      <!-- Size Comparison SVG -->
+      <div class="size-compare-box">
+        <div class="size-svg-wrap">
+          <svg viewBox="0 0 228 234" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Height scale comparison">
+            <!-- ground -->
+            <line x1="0" x2="228" y1="208.8" y2="208.8" stroke="#333a44" stroke-width="1.5"></line>
+            <!-- person, 180 cm -->
+            <g transform="translate(10.8 28.8)" fill="#444d5a">
+              <circle cx="25" cy="12" r="11"></circle>
+              <path d="M14 26 Q25 22 36 26 L41 28 Q45 30 45 36 L46 92 Q46 96 43 96 Q40 96 40 92 L39 42 L37 42 L37 100 L35 176 Q35 180 31 180 Q27 180 27 176 L26 108 L24 108 L23 176 Q23 180 19 180 Q15 180 15 176 L13 100 L13 42 L11 42 L10 92 Q10 96 7 96 Q4 96 4 92 L5 36 Q5 30 9 28 Z"></path>
+            </g>
+            <text x="35.8" y="21.4" font-size="14" fill="#9aa5b5" text-anchor="middle" font-family="'JetBrains Mono', monospace">1.80 m</text>
+            <!-- model bounding box -->
+            <rect x="90.8" y="40.8" width="90.3" height="168" fill="rgba(180, 220, 52, 0.12)" stroke="#b4dc34" stroke-width="1.5" stroke-dasharray="4 2"></rect>
+            <!-- height marker -->
+            <line x1="190.5" x2="190.5" y1="40.8" y2="208.8" stroke="#9aa5b5" stroke-width="1"></line>
+            <line x1="187" x2="194" y1="40.8" y2="40.8" stroke="#9aa5b5" stroke-width="1"></line>
+            <text x="206" y="130" font-size="14" fill="#b4dc34" font-weight="bold" font-family="'JetBrains Mono', monospace">1.68 m</text>
+            <!-- width marker -->
+            <text x="136" y="228" font-size="13" fill="#9aa5b5" text-anchor="middle" font-family="'JetBrains Mono', monospace">0.90 m</text>
+          </svg>
+        </div>
+        <div class="size-legend">
+          <div class="legend-item">
+            <span class="legend-box" style="background: var(--accent);"></span>
+            <span>Woman Base Mesh (1.68 m)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-box" style="background: #444d5a;"></span>
+            <span>Standard Figure (1.80 m)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Game Engine Integration Guide -->
+    <section class="section-block">
+      <h2 class="section-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Engine Import Guides
+      </h2>
+
+      <div class="engine-cards">
+        <div class="engine-card">
+          <div class="engine-head">
+            <span class="engine-name">Unity</span>
+            <span class="engine-fmt">GLB · FBX</span>
+          </div>
+          <p>Import the GLB with the <code>glTFast</code> package or use the FBX. 1 meter in the file directly translates to 1 Unity coordinate unit. Humanoid avatar configuration maps automatically.</p>
+        </div>
+
+        <div class="engine-card">
+          <div class="engine-head">
+            <span class="engine-name">Unreal Engine 5</span>
+            <span class="engine-fmt">FBX</span>
+          </div>
+          <p>Import the FBX file. Unreal converts meters to centimeters automatically (1.68 m = 168 cm). For the rigged edition, import as Skeletal Mesh; walk and run takes import cleanly into animation sequences.</p>
+        </div>
+
+        <div class="engine-card">
+          <div class="engine-head">
+            <span class="engine-name">Godot 4</span>
+            <span class="engine-fmt">GLB · FBX</span>
+          </div>
+          <p>Drag the GLB directly into the FileSystem dock. Godot 4 imports it natively with materials. For the rigged variant, the skeleton and AnimationPlayer with Walk and Run tracks are set up out of the box.</p>
+        </div>
+
+        <div class="engine-card">
+          <div class="engine-head">
+            <span class="engine-name">Blender 4.x</span>
+            <span class="engine-fmt">BLEND · GLB</span>
+          </div>
+          <p>Open the <code>.blend</code> file directly for full shader nodes, armature hierarchy, and animation actions, or import the GLB via <code>File › Import › glTF 2.0</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tags -->
+    <section class="section-block">
+      <h3 style="font-size: 1.1rem; margin-bottom: 12px;">Tags & Categories</h3>
+      <ul class="tags-list">
+        <li><span class="tag-chip">#woman base mesh</span></li>
+        <li><span class="tag-chip">#female base mesh</span></li>
+        <li><span class="tag-chip">#base character</span></li>
+        <li><span class="tag-chip">#base mesh</span></li>
+        <li><span class="tag-chip">#rigged</span></li>
+        <li><span class="tag-chip">#a-pose</span></li>
+        <li><span class="tag-chip">#realistic</span></li>
+        <li><span class="tag-chip">#pbr</span></li>
+        <li><span class="tag-chip">#game-ready</span></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Woman Base Mesh 3D Model · Converted from <a href="https://grab3d.com/models/characters/woman-base-character/" target="_blank">Grab3D</a> · All asset files intact and unmanipulated</p>
+      <p style="margin-top: 8px; font-size: 0.78rem;">Licensed under Creative Commons CC0 1.0 Universal (Public Domain).</p>
+    </div>
+  </footer>
+
+  <script>
+    // Asset Map - Exact, unmanipulated file paths & remote Grab3D links
+    const assetMatrix = {
+      rigged: {
+        glb: {
+          file: 'rigged.glb',
+          remoteUrl: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.glb',
+          size: '12 MB',
+          label: 'Download Rigged GLB (12 MB)'
+        },
+        fbx: {
+          file: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.fbx',
+          remoteUrl: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.fbx',
+          size: '18 MB',
+          label: 'Download Rigged FBX (18 MB)'
+        },
+        blend: {
+          file: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.blend',
+          remoteUrl: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.blend',
+          size: '13 MB',
+          label: 'Download Rigged BLEND (13 MB)'
+        }
+      },
+      static: {
+        full: {
+          glb: {
+            file: 'woman-base-character.glb',
+            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character.glb',
+            size: '13 MB',
+            label: 'Download Static GLB (13 MB)'
+          },
+          fbx: {
+            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character.fbx',
+            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character.fbx',
+            size: '20 MB',
+            label: 'Download Static FBX (20 MB)'
+          },
+          blend: {
+            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character.blend',
+            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character.blend',
+            size: '15 MB',
+            label: 'Download Static BLEND (15 MB)'
+          },
+          usdz: {
+            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character.usdz',
+            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character.usdz',
+            size: '19 MB',
+            label: 'Download Static USDZ (19 MB)'
+          },
+          'obj-zip': {
+            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character-obj.zip',
+            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character-obj.zip',
+            size: '10.0 MB',
+            label: 'Download OBJ ZIP (10 MB)'
+          }
+        },
+        light: {
+          glb: {
+            file: 'preview.glb',
+            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character-light.glb',
+            size: '4.6 MB',
+            label: 'Download Light GLB (4.6 MB)'
+          },
+          fbx: {
+            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character-light.fbx',
+            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character-light.fbx',
+            size: '9.1 MB',
+            label: 'Download Light FBX (9.1 MB)'
+          }
+        }
+      }
+    };
+
+    // State
+    let currentVersion = 'rigged';
+    let currentQuality = 'full';
+    let currentFmt = 'glb';
+    let isAutoRotating = false;
+
+    const viewer = document.getElementById('character-viewer');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingStatus = document.getElementById('loading-status');
+    const activeFilename = document.getElementById('active-filename');
+    const animControlsGroup = document.getElementById('anim-controls-group');
+    const downloadBtn = document.getElementById('main-download-btn');
+    const downloadBtnText = document.getElementById('btn-download-text');
+
+    // Model Loading Handlers
+    viewer.addEventListener('load', () => {
+      loadingOverlay.classList.add('hidden');
+      if (currentVersion === 'rigged') {
+        viewer.animationName = 'walk';
+        viewer.play();
+      }
+    });
+
+    viewer.addEventListener('error', (err) => {
+      console.warn('Model viewer load event error or fallback:', err);
+      loadingStatus.textContent = 'Previewing Model...';
+      setTimeout(() => loadingOverlay.classList.add('hidden'), 500);
+    });
+
+    // 3D Model Variant Switching
+    function setModelVariant(variant) {
+      loadingOverlay.classList.remove('hidden');
+      loadingStatus.textContent = 'Loading ' + variant + ' model...';
+
+      if (variant === 'rigged') {
+        viewer.src = 'rigged.glb';
+        activeFilename.textContent = 'woman-base-character-rigged.glb';
+        animControlsGroup.style.display = 'flex';
+        setTimeout(() => {
+          viewer.animationName = 'walk';
+          viewer.play();
+        }, 300);
+      } else if (variant === 'full') {
+        viewer.pause();
+        viewer.src = 'woman-base-character.glb';
+        activeFilename.textContent = 'woman-base-character.glb';
+        animControlsGroup.style.display = 'none';
+      } else if (variant === 'light') {
+        viewer.pause();
+        viewer.src = 'preview.glb';
+        activeFilename.textContent = 'woman-base-character-light.glb';
+        animControlsGroup.style.display = 'none';
+      }
+    }
+
+    // Canvas Pill Buttons
+    document.querySelectorAll('.pill-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const v = btn.dataset.variant;
+        setModelVariant(v);
+
+        // sync download card version
+        if (v === 'rigged') {
+          syncVersionUI('rigged');
+        } else {
+          syncVersionUI('static');
+          if (v === 'light') syncQualityUI('light');
+          else syncQualityUI('full');
+        }
+      });
+    });
+
+    // Animation Controls
+    document.querySelectorAll('.anim-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const anim = btn.dataset.anim;
+        if (anim === 'none') {
+          viewer.pause();
+        } else {
+          viewer.animationName = anim;
+          viewer.play();
+        }
+      });
+    });
+
+    // Auto-Rotate Toggle
+    const btnAutorotate = document.getElementById('btn-autorotate');
+    btnAutorotate.addEventListener('click', () => {
+      isAutoRotating = !isAutoRotating;
+      viewer.autoRotate = isAutoRotating;
+      btnAutorotate.classList.toggle('active', isAutoRotating);
+    });
+
+    // Fullscreen Toggle
+    const btnFullscreen = document.getElementById('btn-fullscreen');
+    btnFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        viewer.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // Reset Camera
+    document.getElementById('tab-reset-cam').addEventListener('click', () => {
+      viewer.cameraOrbit = '0deg 78deg 3.4m';
+      viewer.fieldOfView = 'auto';
+    });
+
+    // Lighting Presets
+    document.getElementById('env-select').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === 'neutral') {
+        viewer.environmentImage = '';
+        viewer.exposure = 1.0;
+        viewer.shadowIntensity = 1.2;
+      } else if (val === 'warm') {
+        viewer.exposure = 1.25;
+        viewer.shadowIntensity = 1.0;
+      } else if (val === 'cool') {
+        viewer.exposure = 1.1;
+        viewer.shadowIntensity = 0.9;
+      } else if (val === 'dark') {
+        viewer.exposure = 2.2;
+        viewer.shadowIntensity = 1.4;
+      }
+    });
+
+    // Download UI Sync
+    function syncVersionUI(v) {
+      currentVersion = v;
+      document.querySelectorAll('#version-selector .seg-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.v === v);
+      });
+
+      const qWrap = document.getElementById('quality-selector-wrap');
+      const tileUsdz = document.getElementById('tile-usdz');
+      const tileObj = document.getElementById('tile-obj');
+
+      if (v === 'rigged') {
+        qWrap.style.display = 'none';
+        tileUsdz.style.display = 'none';
+        tileObj.style.display = 'none';
+        if (currentFmt === 'usdz' || currentFmt === 'obj-zip') currentFmt = 'glb';
+        document.getElementById('size-glb').textContent = '12 MB';
+        document.getElementById('size-fbx').textContent = '18 MB';
+        document.getElementById('size-blend').textContent = '13 MB';
+      } else {
+        qWrap.style.display = 'block';
+        tileUsdz.style.display = 'flex';
+        tileObj.style.display = 'flex';
+        document.getElementById('size-glb').textContent = currentQuality === 'full' ? '13 MB' : '4.6 MB';
+        document.getElementById('size-fbx').textContent = currentQuality === 'full' ? '20 MB' : '9.1 MB';
+        document.getElementById('size-blend').textContent = '15 MB';
+      }
+
+      updateDownloadButton();
+    }
+
+    function syncQualityUI(q) {
+      currentQuality = q;
+      document.querySelectorAll('#quality-selector-wrap .seg-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.q === q);
+      });
+      document.getElementById('size-glb').textContent = q === 'full' ? '13 MB' : '4.6 MB';
+      document.getElementById('size-fbx').textContent = q === 'full' ? '20 MB' : '9.1 MB';
+      updateDownloadButton();
+    }
+
+    function updateDownloadButton() {
+      let option;
+      if (currentVersion === 'rigged') {
+        option = assetMatrix.rigged[currentFmt] || assetMatrix.rigged.glb;
+      } else {
+        const branch = assetMatrix.static[currentQuality] || assetMatrix.static.full;
+        option = branch[currentFmt] || branch.glb;
+      }
+
+      if (option) {
+        downloadBtn.href = option.file;
+        downloadBtn.setAttribute('download', option.file.split('/').pop());
+        downloadBtnText.textContent = option.label;
+      }
+    }
+
+    // Version buttons click
+    document.querySelectorAll('#version-selector .seg-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        syncVersionUI(b.dataset.v);
+        setModelVariant(b.dataset.v === 'rigged' ? 'rigged' : (currentQuality === 'light' ? 'light' : 'full'));
+      });
+    });
+
+    // Quality buttons click
+    document.querySelectorAll('#quality-selector-wrap .seg-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        syncQualityUI(b.dataset.q);
+        setModelVariant(b.dataset.q === 'light' ? 'light' : 'full');
+      });
+    });
+
+    // Format tiles click
+    document.querySelectorAll('.format-tile').forEach(tile => {
+      tile.addEventListener('click', () => {
+        document.querySelectorAll('.format-tile').forEach(t => t.classList.remove('active'));
+        tile.classList.add('active');
+        currentFmt = tile.dataset.fmt;
+        updateDownloadButton();
+      });
+    });
+
+    // Initialize button
+    updateDownloadButton();
+  </script>
+</body>
+</html>
