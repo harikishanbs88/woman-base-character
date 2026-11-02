@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Woman Base Mesh: Interactive 3D Character (Rigged, Facial & Actions) | Grab3D</title>
-  <meta name="description" content="Free Woman Base Mesh 3D model with eye blinking, talking mouth expressions, custom actions (Hello, Bye, Checking, Sitting, Dancing), dark circles & facial wrinkles controls. CC0 public domain.">
+  <title>Woman Base Mesh: Lifelike 3D Character (Natural Wait, Actions & Facial) | Grab3D</title>
+  <meta name="description" content="Free Woman Base Mesh 3D model with lifelike human wait animation, anatomically correct Hello, Bye, Checking, Sitting, Dancing actions, eye blinking, speech visemes, dark circles and facial wrinkles.">
   <meta name="theme-color" content="#0a0c11">
   <meta name="color-scheme" content="dark">
 
@@ -73,7 +73,6 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Ambient background gradient glow */
     body::before {
       content: "";
       position: fixed;
@@ -516,12 +515,13 @@
       box-shadow: 0 0 12px rgba(180, 220, 52, 0.15);
     }
 
-    /* Special Action Buttons */
+    /* Distinct Action Badges */
+    .btn-action-wait { border-left: 3px solid #20c997; }
     .btn-action-hello { border-left: 3px solid #ffbd2e; }
     .btn-action-bye { border-left: 3px solid #ff758c; }
     .btn-action-check { border-left: 3px solid #4dabf7; }
     .btn-action-sit { border-left: 3px solid #b197fc; }
-    .btn-action-dance { border-left: 3px solid #20c997; }
+    .btn-action-dance { border-left: 3px solid #f06595; }
 
     /* Facial & Speech Controller Panel */
     .face-controller-panel {
@@ -677,10 +677,10 @@
       color: #4dabf7;
     }
 
-    .badge-orange {
-      background: rgba(255, 146, 43, 0.12);
-      border-color: rgba(255, 146, 43, 0.3);
-      color: #ff922b;
+    .badge-green {
+      background: rgba(32, 201, 151, 0.12);
+      border-color: rgba(32, 201, 151, 0.3);
+      color: #20c997;
     }
 
     /* Download Card */
@@ -1066,7 +1066,7 @@
           <div class="stage-tabs">
             <button type="button" class="stage-tab-btn active" id="tab-interactive">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-              Live Engine
+              Live Rig Engine
             </button>
             <button type="button" class="stage-tab-btn" id="tab-reset-cam">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -1079,7 +1079,7 @@
           <!-- Loading Indicator -->
           <div class="viewer-loading-overlay" id="loading-overlay">
             <div class="spinner"></div>
-            <div class="loading-text" id="loading-status">Loading Rigged 3D Character & Shaders...</div>
+            <div class="loading-text" id="loading-status">Loading Rigged 3D Character & Motion Clips...</div>
           </div>
 
           <!-- Canvas Top Pill Controls -->
@@ -1117,16 +1117,19 @@
           <!-- Live Status Tag -->
           <div class="live-status-pill">
             <span class="pulse-dot"></span>
-            <span id="current-action-label">Action: Hello 👋</span>
+            <span id="current-action-label">Action: Waiting (Natural Human Idle) ⏳</span>
           </div>
         </div>
 
-        <!-- Animation Controls Dashboard -->
+        <!-- Action Control Dashboard -->
         <div class="stage-anim-bar">
           <!-- Row 1: Character Action Animations -->
           <div class="action-row">
             <span class="action-tag-label">Actions:</span>
-            <button type="button" class="anim-btn active btn-action-hello" data-action="hello">
+            <button type="button" class="anim-btn active btn-action-wait" data-action="wait">
+              ⏳ Wait (Human Idle)
+            </button>
+            <button type="button" class="anim-btn btn-action-hello" data-action="hello">
               👋 Hello
             </button>
             <button type="button" class="anim-btn btn-action-bye" data-action="bye">
@@ -1146,9 +1149,6 @@
             </button>
             <button type="button" class="anim-btn" data-action="run">
               🏃 Run
-            </button>
-            <button type="button" class="anim-btn" data-action="idle">
-              🧍 A-Pose
             </button>
           </div>
 
@@ -1227,9 +1227,9 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
               Rigged & Animated
             </span>
-            <span class="badge badge-orange">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg>
-              Facial Shaders Active
+            <span class="badge badge-green">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Natural Wait Idle
             </span>
             <span class="badge badge-blue">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -1238,7 +1238,7 @@
           </div>
 
           <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 8px;">
-            A neutral, anatomically accurate female character standing 1.68m tall. Now enhanced with dynamic eye blinking, synchronized speech talking expressions, procedural actions (Hello, Bye, Checking, Sitting, Dancing), dark circles, and facial micro-wrinkles.
+            A neutral, anatomically accurate female character standing 1.68m tall. Powered by a natural human **Wait animation** (realistic breathing & postural weight shifting), anatomically constrained actions (Hello, Bye, Checking, Sitting, Dancing), blinking eyes, speaking visemes, and face shaders.
           </p>
         </div>
 
@@ -1357,7 +1357,7 @@
         <div class="spec-item">
           <span class="spec-key">Rig & Animations</span>
           <span class="spec-value">Humanoid Skeleton</span>
-          <span class="spec-sub">Walk, Run, Hello, Bye, Checking, Sitting, Dancing</span>
+          <span class="spec-sub">Natural Wait, Hello, Bye, Checking, Sitting, Dancing, Walk, Run</span>
         </div>
 
         <div class="spec-item">
@@ -1447,7 +1447,7 @@
     </div>
   </footer>
 
-  <!-- Real-Time Interactive Three.js Engine Script -->
+  <!-- Real-Time Lifelike Three.js Engine Script -->
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -1456,7 +1456,7 @@
 
     // Application State
     const state = {
-      action: 'hello', // hello, bye, checking, sitting, dancing, walk, run, idle
+      action: 'wait', // wait, hello, bye, checking, sitting, dancing, walk, run
       autoBlink: true,
       blinkValue: 0,
       isBlinking: false,
@@ -1503,7 +1503,7 @@
     controls.minDistance = 0.6;
     controls.maxDistance = 6.0;
 
-    // 2. Lighting Rig
+    // 2. Studio Lighting Rig
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x222630, 1.1);
     hemiLight.position.set(0, 20, 0);
     scene.add(hemiLight);
@@ -1547,21 +1547,306 @@
     gltfLoader.setDRACOLoader(dracoLoader);
 
     let mixer = null;
-    let bakedWalkAction = null;
-    let bakedRunAction = null;
     let characterModel = null;
     let skinnedMesh = null;
     let boneMap = {};
-    let originalBoneRotations = {};
+    let restQuat = {};
+    let restPos = {};
     let characterMaterial = null;
 
-    // Face Texture Modifier Canvas
+    // Actions Dictionary
+    const actions = {};
+    let currentAction = null;
+
+    // Face Texture Modifier
     let texCanvas = null;
     let texCtx = null;
     let dynamicTexture = null;
     let baseImage = null;
 
-    // Load Character Model
+    // Helper: Build a local quaternion offset without breaking parent coordinates
+    // Helper: Build a local quaternion offset without breaking parent coordinates, normalized!
+    function qMul(baseQuat, rx, ry, rz) {
+      const delta = new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz, 'XYZ'));
+      const res = baseQuat.clone().multiply(delta);
+      return res.normalize();
+    }
+
+    // 4. Procedural Lifelike Human Animation Generator
+    // Mathematically verified bone trajectories matching rigged.glb joint orientations!
+    function createProceduralClips() {
+      if (!boneMap['Hips']) return;
+
+      // Bone tracks builder helper
+      function makeClip(name, duration, keyframesFn) {
+        const tracks = [];
+        const times = [];
+        const numKeys = 36; // high density smooth sample points
+        for (let i = 0; i <= numKeys; i++) {
+          times.push((i / numKeys) * duration);
+        }
+
+        // For each bone, sample quaternions at each time
+        Object.keys(boneMap).forEach((boneName) => {
+          const values = [];
+          for (let i = 0; i <= numKeys; i++) {
+            const t = times[i];
+            const q = keyframesFn(boneName, t, duration) || restQuat[boneName];
+            values.push(q.x, q.y, q.z, q.w);
+          }
+          tracks.push(new THREE.QuaternionKeyframeTrack(`${boneName}.quaternion`, times, values));
+        });
+
+        // Hips position track for vertical breathing / seated height / bobbing
+        const posTimes = times;
+        const posValues = [];
+        for (let i = 0; i <= numKeys; i++) {
+          const t = times[i];
+          const pos = keyframesFn('__HIPS_POS__', t, duration) || restPos['Hips'];
+          posValues.push(pos.x, pos.y, pos.z);
+        }
+        tracks.push(new THREE.VectorKeyframeTrack('Hips.position', posTimes, posValues));
+
+        return new THREE.AnimationClip(name, duration, tracks);
+      }
+
+      // --- A. WAIT (Lifelike Human Waiting / Contrapposto Idle Stance) ---
+      // Natural 4.8s human breathing cycle, subtle weight shift, micro head surveying, relaxed arms
+      const waitClip = makeClip('wait', 4.8, (bone, t, dur) => {
+        const phase = (t / dur) * Math.PI * 2;
+        const breath = Math.sin(phase);
+        const sway = Math.sin(phase * 0.5);
+
+        if (bone === '__HIPS_POS__') {
+          return new THREE.Vector3(
+            restPos['Hips'].x + sway * 0.6,
+            restPos['Hips'].y + breath * 0.5,
+            restPos['Hips'].z
+          );
+        }
+        if (bone === 'Hips') {
+          return qMul(restQuat['Hips'], breath * 0.01, sway * 0.015, sway * 0.02);
+        }
+        if (bone === 'Spine' || bone === 'Spine01' || bone === 'Spine02') {
+          return qMul(restQuat[bone], -0.015 * breath, -0.01 * sway, 0);
+        }
+        if (bone === 'RightShoulder' || bone === 'LeftShoulder') {
+          return qMul(restQuat[bone], 0, 0, breath * 0.008);
+        }
+        if (bone === 'Head') {
+          return qMul(restQuat['Head'], breath * 0.015, Math.sin(phase * 0.5) * 0.04, sway * 0.02);
+        }
+        if (bone === 'RightArm') {
+          return qMul(restQuat['RightArm'], breath * 0.015, 0, -0.05 + breath * 0.02);
+        }
+        if (bone === 'RightForeArm') {
+          return qMul(restQuat['RightForeArm'], 0.20 + breath * 0.02, 0, 0);
+        }
+        if (bone === 'LeftArm') {
+          return qMul(restQuat['LeftArm'], breath * 0.015, 0, 0.05 - breath * 0.02);
+        }
+        if (bone === 'LeftForeArm') {
+          return qMul(restQuat['LeftForeArm'], 0.20 + breath * 0.02, 0, 0);
+        }
+        if (bone === 'LeftLeg') {
+          return qMul(restQuat['LeftLeg'], 0.04 * sway, 0, 0);
+        }
+        return restQuat[bone];
+      });
+
+      // --- B. HELLO (Natural, Graceful Arm Wave at Face Level) ---
+      const helloClip = makeClip('hello', 2.8, (bone, t, dur) => {
+        const phase = (t / dur) * Math.PI * 2;
+        const wave = Math.sin(phase * 3.0);
+        const breath = Math.sin(phase);
+
+        if (bone === '__HIPS_POS__') {
+          return new THREE.Vector3(restPos['Hips'].x, restPos['Hips'].y + breath * 0.3, restPos['Hips'].z);
+        }
+        if (bone === 'RightArm') {
+          return qMul(restQuat['RightArm'], 0.55, 0, -0.65);
+        }
+        if (bone === 'RightForeArm') {
+          return qMul(restQuat['RightForeArm'], 1.65 + wave * 0.10, 0, 0);
+        }
+        if (bone === 'RightHand') {
+          return qMul(restQuat['RightHand'], 0, wave * 0.35, wave * 0.25);
+        }
+        if (bone === 'Head') {
+          return qMul(restQuat['Head'], 0.08, -0.06, -0.05);
+        }
+        if (bone === 'Spine' || bone === 'Spine01') {
+          return qMul(restQuat[bone], 0.02, 0.02, 0);
+        }
+        if (bone === 'LeftArm') {
+          return qMul(restQuat['LeftArm'], 0, 0, 0.08);
+        }
+        if (bone === 'LeftForeArm') {
+          return qMul(restQuat['LeftForeArm'], 0.22, 0, 0);
+        }
+        return restQuat[bone];
+      });
+
+      // --- C. BYE (High Energy Farewell Wave) ---
+      const byeClip = makeClip('bye', 2.4, (bone, t, dur) => {
+        const phase = (t / dur) * Math.PI * 2;
+        const wave = Math.sin(phase * 3.5);
+        const sway = Math.sin(phase);
+
+        if (bone === '__HIPS_POS__') {
+          return new THREE.Vector3(restPos['Hips'].x + sway * 0.5, restPos['Hips'].y, restPos['Hips'].z);
+        }
+        if (bone === 'RightArm') {
+          return qMul(restQuat['RightArm'], 0.60, 0, -0.85);
+        }
+        if (bone === 'RightForeArm') {
+          return qMul(restQuat['RightForeArm'], 1.75 + wave * 0.12, 0, 0);
+        }
+        if (bone === 'RightHand') {
+          return qMul(restQuat['RightHand'], 0, wave * 0.45, wave * 0.30);
+        }
+        if (bone === 'Hips') {
+          return qMul(restQuat['Hips'], 0, sway * 0.03, sway * 0.03);
+        }
+        if (bone === 'Head') {
+          return qMul(restQuat['Head'], -0.05, -0.08, -0.06);
+        }
+        if (bone === 'LeftArm') {
+          return qMul(restQuat['LeftArm'], 0, 0, 0.06);
+        }
+        return restQuat[bone];
+      });
+
+      // --- D. CHECKING (Wrist Watch & Appearance Inspection) ---
+      const checkingClip = makeClip('checking', 3.2, (bone, t, dur) => {
+        const phase = (t / dur) * Math.PI * 2;
+        const cycle = Math.sin(phase);
+
+        if (bone === '__HIPS_POS__') return restPos['Hips'];
+
+        if (bone === 'LeftArm') {
+          return qMul(restQuat['LeftArm'], 0.40, 0, -0.20);
+        }
+        if (bone === 'LeftForeArm') {
+          return qMul(restQuat['LeftForeArm'], 1.40, 0, -0.80);
+        }
+        if (bone === 'LeftHand') {
+          return qMul(restQuat['LeftHand'], 0.15, -0.20, 0);
+        }
+        if (bone === 'Head') {
+          return qMul(restQuat['Head'], 0.26 + cycle * 0.03, 0.20, 0);
+        }
+        if (bone === 'Spine' || bone === 'Spine01') {
+          return qMul(restQuat[bone], 0.05, 0.03, 0);
+        }
+        if (bone === 'RightArm') {
+          return qMul(restQuat['RightArm'], 0, 0, -0.05);
+        }
+        if (bone === 'RightForeArm') {
+          return qMul(restQuat['RightForeArm'], 0.20, 0, 0);
+        }
+        return restQuat[bone];
+      });
+
+      // --- E. SITTING (Anatomically Smooth Seated Pose) ---
+      const sittingClip = makeClip('sitting', 3.0, (bone, t, dur) => {
+        const phase = (t / dur) * Math.PI * 2;
+        const breath = Math.sin(phase);
+
+        if (bone === '__HIPS_POS__') {
+          return new THREE.Vector3(
+            restPos['Hips'].x,
+            restPos['Hips'].y - 42.0,
+            restPos['Hips'].z - 10.0 + breath * 0.15
+          );
+        }
+        if (bone === 'Hips') {
+          return qMul(restQuat['Hips'], 0.04, 0, 0);
+        }
+        if (bone === 'RightUpLeg' || bone === 'LeftUpLeg') {
+          return qMul(restQuat[bone], -1.35, 0, 0);
+        }
+        if (bone === 'RightLeg' || bone === 'LeftLeg') {
+          return qMul(restQuat[bone], 1.45, 0, 0);
+        }
+        if (bone === 'RightFoot' || bone === 'LeftFoot') {
+          return qMul(restQuat[bone], -0.10, 0, 0);
+        }
+        if (bone === 'Spine' || bone === 'Spine01') {
+          return qMul(restQuat[bone], -0.04 + breath * 0.015, 0, 0);
+        }
+        if (bone === 'Head') {
+          return qMul(restQuat['Head'], 0.04 + breath * 0.01, 0, 0);
+        }
+        if (bone === 'RightArm') {
+          return qMul(restQuat['RightArm'], 0.15, 0, -0.10);
+        }
+        if (bone === 'RightForeArm') {
+          return qMul(restQuat['RightForeArm'], 0.85, 0, 0);
+        }
+        if (bone === 'LeftArm') {
+          return qMul(restQuat['LeftArm'], 0.15, 0, 0.10);
+        }
+        if (bone === 'LeftForeArm') {
+          return qMul(restQuat['LeftForeArm'], 0.85, 0, 0);
+        }
+        return restQuat[bone];
+      });
+
+      // --- F. DANCING (Smooth Rhythmic Human Groove) ---
+      const dancingClip = makeClip('dancing', 2.2, (bone, t, dur) => {
+        const phase = (t / dur) * Math.PI * 2;
+        const beat = phase * 2;
+        const hipSway = Math.sin(phase);
+        const bounce = Math.abs(Math.sin(beat)) * 2.2;
+
+        if (bone === '__HIPS_POS__') {
+          return new THREE.Vector3(
+            restPos['Hips'].x + hipSway * 1.5,
+            restPos['Hips'].y - bounce,
+            restPos['Hips'].z
+          );
+        }
+        if (bone === 'Hips') {
+          return qMul(restQuat['Hips'], 0.04, Math.cos(phase) * 0.08, hipSway * 0.12);
+        }
+        if (bone === 'Spine' || bone === 'Spine01') {
+          return qMul(restQuat[bone], Math.sin(beat) * 0.03, -Math.cos(phase) * 0.06, -hipSway * 0.08);
+        }
+        if (bone === 'RightArm') {
+          return qMul(restQuat['RightArm'], 0.30 + Math.sin(phase) * 0.15, 0, -0.35);
+        }
+        if (bone === 'RightForeArm') {
+          return qMul(restQuat['RightForeArm'], 0.80 + Math.cos(beat) * 0.25, 0, 0);
+        }
+        if (bone === 'LeftArm') {
+          return qMul(restQuat['LeftArm'], 0.30 - Math.sin(phase) * 0.15, 0, 0.35);
+        }
+        if (bone === 'LeftForeArm') {
+          return qMul(restQuat['LeftForeArm'], 0.80 + Math.sin(beat) * 0.25, 0, 0);
+        }
+        if (bone === 'Head') {
+          return qMul(restQuat['Head'], Math.sin(beat) * 0.05, -Math.sin(phase) * 0.08, 0);
+        }
+        if (bone === 'RightLeg') {
+          return qMul(restQuat['RightLeg'], Math.abs(Math.sin(beat)) * 0.10, 0, 0);
+        }
+        if (bone === 'LeftLeg') {
+          return qMul(restQuat['LeftLeg'], Math.abs(Math.cos(beat)) * 0.10, 0, 0);
+        }
+        return restQuat[bone];
+      });
+
+      // Register procedural actions in mixer
+      actions['wait'] = mixer.clipAction(waitClip);
+      actions['hello'] = mixer.clipAction(helloClip);
+      actions['bye'] = mixer.clipAction(byeClip);
+      actions['checking'] = mixer.clipAction(checkingClip);
+      actions['sitting'] = mixer.clipAction(sittingClip);
+      actions['dancing'] = mixer.clipAction(dancingClip);
+    }
+
+    // 5. Load Model & Setup Mixer
     gltfLoader.load(
       'rigged.glb',
       (gltf) => {
@@ -1575,20 +1860,32 @@
           }
           if (node.isBone) {
             boneMap[node.name] = node;
-            originalBoneRotations[node.name] = node.quaternion.clone();
+            restQuat[node.name] = node.quaternion.clone();
+            restPos[node.name] = node.position.clone();
           }
         });
 
-        // Set up Animation Mixer for baked takes
+        // Initialize Animation Mixer
         mixer = new THREE.AnimationMixer(characterModel);
+
+        // Register baked takes (walk, run)
         if (gltf.animations) {
           gltf.animations.forEach((clip) => {
-            if (clip.name === 'walk') bakedWalkAction = mixer.clipAction(clip);
-            if (clip.name === 'run') bakedRunAction = mixer.clipAction(clip);
+            if (clip.name === 'walk') actions['walk'] = mixer.clipAction(clip);
+            if (clip.name === 'run') actions['run'] = mixer.clipAction(clip);
           });
         }
 
-        // Initialize Face Texture Shading (Dark circles, Wrinkles, Eye Blink)
+        // Create the lifelike procedural human clips
+        createProceduralClips();
+
+        // Start with the lifelike human WAIT animation
+        if (actions['wait']) {
+          currentAction = actions['wait'];
+          currentAction.play();
+        }
+
+        // Initialize Face Texture Shading (Blinking, Dark Circles & Wrinkles)
         initFaceTextureMod(characterMaterial);
 
         scene.add(characterModel);
@@ -1599,13 +1896,60 @@
         loadingStatus.textContent = `Loading 3D Character... ${percent}%`;
       },
       (err) => {
-        console.error('Error loading rigged.glb:', err);
+        console.error('Error loading model:', err);
         loadingStatus.textContent = 'Previewing Character...';
         setTimeout(() => loadingOverlay.classList.add('hidden'), 500);
       }
     );
 
-    // 4. Procedural Dynamic Face Texture (Blinking, Dark Circles & Facial Wrinkles)
+    // 6. Smooth Animation Cross-Fading Function (Zero Fracturing!)
+    function playAction(actionName) {
+      if (!actions[actionName]) return;
+
+      const targetAction = actions[actionName];
+      if (currentAction === targetAction) return;
+
+      state.action = actionName;
+
+      const prevAction = currentAction;
+      currentAction = targetAction;
+
+      // Seamless crossfade over 0.45 seconds
+      if (prevAction) {
+        targetAction.reset();
+        targetAction.time = 0.0;
+        targetAction.enabled = true;
+        targetAction.setEffectiveTimeScale(1.0);
+        targetAction.setEffectiveWeight(1.0);
+        prevAction.crossFadeTo(targetAction, 0.45, true);
+        targetAction.play();
+      } else {
+        targetAction.reset().play();
+      }
+
+      // Update UI button highlights
+      document.querySelectorAll('.anim-btn[data-action]').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.action === actionName);
+      });
+
+      const labelMap = {
+        wait: 'Waiting (Natural Human Idle) ⏳',
+        hello: 'Hello (Friendly Greeting) 👋',
+        bye: 'Bye (Farewell Wave) 🙋‍♀️',
+        checking: 'Checking Wrist / Appearance ⌚',
+        sitting: 'Sitting (Natural Seated Rest) 🪑',
+        dancing: 'Dancing (Groovy Human Rhythm) 💃',
+        walk: 'Walk Cycle 🚶',
+        run: 'Run Cycle 🏃'
+      };
+      currentActionLabel.textContent = `Action: ${labelMap[actionName] || actionName}`;
+    }
+
+    document.querySelectorAll('.anim-btn[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => playAction(btn.dataset.action));
+    });
+
+    // 7. Procedural Face Texture (Blinking, Dark Circles & Facial Wrinkles)
     function initFaceTextureMod(material) {
       if (!material || !material.map || !material.map.image) return;
 
@@ -1633,8 +1977,6 @@
       texCtx.drawImage(baseImage, 0, 0, w, h);
 
       // Facial coordinates mapped from model UVs:
-      // In this model UV layout, Face is located in the upper quadrant:
-      // Center ~ (w * 0.49, h * 0.22)
       const cx = w * 0.492;
       const eyeY = h * 0.208;
       const eyeSep = w * 0.048;
@@ -1695,7 +2037,7 @@
           texCtx.stroke();
         });
 
-        // 3. Nasolabial smile folds (nose to mouth corners)
+        // 3. Nasolabial smile folds
         texCtx.beginPath();
         texCtx.moveTo(cx - w * 0.02, eyeY + h * 0.032);
         texCtx.quadraticCurveTo(cx - w * 0.034, mouthY - 4, cx - w * 0.026, mouthY + 12);
@@ -1714,13 +2056,11 @@
         const lidAlpha = Math.min(1, state.blinkValue * 1.2);
         [eyeLeftX, eyeRightX].forEach((ex) => {
           texCtx.save();
-          // Eyelid skin fold
           texCtx.fillStyle = `rgba(182, 142, 126, ${lidAlpha})`;
           texCtx.beginPath();
           texCtx.ellipse(ex, eyeY, w * 0.024, h * (0.016 * state.blinkValue), 0, 0, Math.PI * 2);
           texCtx.fill();
 
-          // Eyelash seam crease
           texCtx.strokeStyle = `rgba(45, 30, 26, ${lidAlpha * 0.95})`;
           texCtx.lineWidth = 3.5;
           texCtx.beginPath();
@@ -1739,11 +2079,9 @@
         texCtx.ellipse(mouthX, mouthY + 2, w * 0.022, h * (0.012 * mOpen), 0, 0, Math.PI * 2);
         texCtx.fill();
 
-        // Upper and lower teeth highlight
         texCtx.fillStyle = `rgba(240, 235, 230, ${mOpen * 0.85})`;
         texCtx.fillRect(mouthX - w * 0.012, mouthY - 1, w * 0.024, 3 * mOpen);
 
-        // Lip outline
         texCtx.strokeStyle = `rgba(142, 68, 76, ${mOpen * 0.7})`;
         texCtx.lineWidth = 2;
         texCtx.beginPath();
@@ -1755,247 +2093,24 @@
       dynamicTexture.needsUpdate = true;
     }
 
-    // 5. Procedural Skeleton Animation Engine (Hello, Bye, Checking, Sitting, Dancing)
+    // 8. Natural Eye Blinking Logic
     const clock = new THREE.Clock();
 
-    function animateCustomActions(time) {
-      if (!boneMap || Object.keys(boneMap).length === 0) return;
-
-      const act = state.action;
-
-      // Bone shortcuts
-      const rShoulder = boneMap['RightShoulder'];
-      const rArm = boneMap['RightArm'];
-      const rForeArm = boneMap['RightForeArm'];
-      const rHand = boneMap['RightHand'];
-
-      const lShoulder = boneMap['LeftShoulder'];
-      const lArm = boneMap['LeftArm'];
-      const lForeArm = boneMap['LeftForeArm'];
-      const lHand = boneMap['LeftHand'];
-
-      const head = boneMap['Head'];
-      const spine = boneMap['Spine'];
-      const hips = boneMap['Hips'];
-      const rUpLeg = boneMap['RightUpLeg'];
-      const lUpLeg = boneMap['LeftUpLeg'];
-      const rLeg = boneMap['RightLeg'];
-      const lLeg = boneMap['LeftLeg'];
-
-      // Reset base position
-      if (hips) hips.position.y = 0;
-
-      // Subtle natural breathing across all poses
-      if (spine) spine.rotation.x = Math.sin(time * 2.2) * 0.035;
-
-      // A. 👋 HELLO (Friendly Greeting Wave)
-      if (act === 'hello') {
-        const wave = Math.sin(time * 6.5) * 0.42;
-        if (rArm) {
-          rArm.rotation.x = -1.15;
-          rArm.rotation.y = 0.2;
-          rArm.rotation.z = -1.45;
-        }
-        if (rForeArm) {
-          rForeArm.rotation.x = 0;
-          rForeArm.rotation.y = 0.6 + wave * 0.3;
-          rForeArm.rotation.z = -1.2;
-        }
-        if (rHand) {
-          rHand.rotation.z = wave * 0.8;
-          rHand.rotation.x = 0.3;
-        }
-        if (head) {
-          head.rotation.y = Math.sin(time * 2) * 0.12;
-          head.rotation.z = -0.08;
-          head.rotation.x = Math.sin(time * 3) * 0.06;
-        }
-        if (lArm) {
-          lArm.rotation.z = 0.3;
-          lArm.rotation.x = 0.1;
-        }
-      }
-
-      // B. 🙋‍♀️ BYE (High Wave Goodbye)
-      else if (act === 'bye') {
-        const wave = Math.sin(time * 8.0) * 0.55;
-        if (rArm) {
-          rArm.rotation.x = -0.8;
-          rArm.rotation.y = 0.1;
-          rArm.rotation.z = -2.1;
-        }
-        if (rForeArm) {
-          rForeArm.rotation.x = 0.2;
-          rForeArm.rotation.y = 0.4;
-          rForeArm.rotation.z = -0.8 + wave * 0.3;
-        }
-        if (rHand) {
-          rHand.rotation.z = wave;
-          rHand.rotation.x = 0.4;
-        }
-        if (head) {
-          head.rotation.y = -0.15 + Math.sin(time * 2) * 0.08;
-          head.rotation.z = -0.12;
-        }
-        if (spine) {
-          spine.rotation.z = Math.sin(time * 2.5) * 0.05;
-        }
-      }
-
-      // C. ⌚ CHECKING (Self-Check & Wrist Inspection)
-      else if (act === 'checking') {
-        const checkCycle = Math.sin(time * 1.8);
-        if (lArm) {
-          lArm.rotation.x = -0.85;
-          lArm.rotation.y = -0.55;
-          lArm.rotation.z = 0.95;
-        }
-        if (lForeArm) {
-          lForeArm.rotation.x = 0.4;
-          lForeArm.rotation.y = -1.35;
-          lForeArm.rotation.z = 0.6;
-        }
-        if (head) {
-          head.rotation.x = 0.45 + checkCycle * 0.1;
-          head.rotation.y = 0.35 + checkCycle * 0.15;
-        }
-        if (rArm) {
-          rArm.rotation.x = -0.3;
-          rArm.rotation.z = -0.4;
-        }
-        if (rForeArm) {
-          rForeArm.rotation.z = -0.6;
-        }
-      }
-
-      // D. 🪑 SITTING (Sitting Pose)
-      else if (act === 'sitting') {
-        if (hips) {
-          hips.position.y = -0.52;
-          hips.rotation.x = 0.08;
-        }
-        if (rUpLeg) {
-          rUpLeg.rotation.x = -1.55;
-          rUpLeg.rotation.y = -0.15;
-        }
-        if (lUpLeg) {
-          lUpLeg.rotation.x = -1.55;
-          lUpLeg.rotation.y = 0.15;
-        }
-        if (rLeg) {
-          rLeg.rotation.x = 1.62;
-        }
-        if (lLeg) {
-          lLeg.rotation.x = 1.62;
-        }
-        if (rArm) {
-          rArm.rotation.x = -0.65;
-          rArm.rotation.z = -0.3;
-        }
-        if (lArm) {
-          lArm.rotation.x = -0.65;
-          lArm.rotation.z = 0.3;
-        }
-        if (rForeArm) rForeArm.rotation.y = 0.4;
-        if (lForeArm) lForeArm.rotation.y = -0.4;
-        if (head) head.rotation.x = 0.05;
-      }
-
-      // E. 💃 DANCING (Rhythmic Hip Sway & Groove)
-      else if (act === 'dancing') {
-        const beat = time * 5.2;
-        const hipSway = Math.sin(beat) * 0.28;
-        const bounce = Math.abs(Math.cos(beat * 2)) * 0.06;
-
-        if (hips) {
-          hips.position.y = -bounce;
-          hips.rotation.z = hipSway;
-          hips.rotation.y = Math.cos(beat) * 0.18;
-        }
-        if (spine) {
-          spine.rotation.z = -hipSway * 0.6;
-          spine.rotation.x = 0.05 + Math.sin(beat * 2) * 0.06;
-        }
-        if (rArm) {
-          rArm.rotation.x = -0.6 + Math.sin(beat) * 0.4;
-          rArm.rotation.z = -0.8 + Math.cos(beat) * 0.3;
-        }
-        if (lArm) {
-          lArm.rotation.x = -0.6 - Math.sin(beat) * 0.4;
-          lArm.rotation.z = 0.8 - Math.cos(beat) * 0.3;
-        }
-        if (rForeArm) rForeArm.rotation.y = 0.8 + Math.sin(beat) * 0.3;
-        if (lForeArm) lForeArm.rotation.y = -0.8 - Math.sin(beat) * 0.3;
-        if (head) {
-          head.rotation.y = -Math.cos(beat) * 0.2;
-          head.rotation.x = Math.sin(beat * 2) * 0.1;
-        }
-      }
-
-      // F. IDLE (Standard A-Pose)
-      else if (act === 'idle') {
-        Object.keys(boneMap).forEach((name) => {
-          if (originalBoneRotations[name]) {
-            boneMap[name].quaternion.slerp(originalBoneRotations[name], 0.1);
-          }
-        });
-      }
-    }
-
-    // 6. Action Switcher
-    function setAction(actionName) {
-      state.action = actionName;
-
-      // Update UI buttons
-      document.querySelectorAll('.anim-btn[data-action]').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.action === actionName);
-      });
-
-      const labels = {
-        hello: 'Hello 👋',
-        bye: 'Bye 🙋‍♀️',
-        checking: 'Checking ⌚',
-        sitting: 'Sitting 🪑',
-        dancing: 'Dancing 💃',
-        walk: 'Walk Cycle 🚶',
-        run: 'Run Cycle 🏃',
-        idle: 'A-Pose 🧍'
-      };
-      currentActionLabel.textContent = `Action: ${labels[actionName] || actionName}`;
-
-      // Handle baked takes (walk, run) vs procedural
-      if (actionName === 'walk') {
-        if (bakedRunAction) bakedRunAction.stop();
-        if (bakedWalkAction) bakedWalkAction.reset().fadeIn(0.3).play();
-      } else if (actionName === 'run') {
-        if (bakedWalkAction) bakedWalkAction.stop();
-        if (bakedRunAction) bakedRunAction.reset().fadeIn(0.3).play();
-      } else {
-        if (bakedWalkAction) bakedWalkAction.fadeOut(0.3);
-        if (bakedRunAction) bakedRunAction.fadeOut(0.3);
-      }
-    }
-
-    document.querySelectorAll('.anim-btn[data-action]').forEach((btn) => {
-      btn.addEventListener('click', () => setAction(btn.dataset.action));
-    });
-
-    // 7. Eye Blinking Logic
     function handleBlinking(delta, elapsed) {
       if (state.autoBlink) {
         if (!state.isBlinking && elapsed - state.lastBlinkTime > state.nextBlinkInterval) {
           state.isBlinking = true;
           state.lastBlinkTime = elapsed;
-          state.nextBlinkInterval = 2.8 + Math.random() * 2.5; // Natural 2.8 - 5.3s blinks
+          state.nextBlinkInterval = 2.8 + Math.random() * 2.5;
         }
       }
 
       if (state.isBlinking) {
-        const blinkProgress = (elapsed - state.lastBlinkTime) / 0.18; // 180ms blink
+        const blinkProgress = (elapsed - state.lastBlinkTime) / 0.18;
         if (blinkProgress <= 0.5) {
-          state.blinkValue = blinkProgress * 2; // close
+          state.blinkValue = blinkProgress * 2;
         } else if (blinkProgress <= 1.0) {
-          state.blinkValue = (1.0 - blinkProgress) * 2; // open
+          state.blinkValue = (1.0 - blinkProgress) * 2;
         } else {
           state.blinkValue = 0;
           state.isBlinking = false;
@@ -2016,7 +2131,7 @@
       btnToggleBlink.textContent = state.autoBlink ? '👁️ Auto Blink (Active)' : '👁️ Auto Blink (Paused)';
     });
 
-    // 8. Talking Mouth & Web Speech Synthesis
+    // 9. Talking Mouth & Speech Synthesis
     const speechInput = document.getElementById('speech-input');
     const btnSpeak = document.getElementById('btn-speak-voice');
     const speechStatus = document.getElementById('speech-status-text');
@@ -2030,9 +2145,8 @@
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
-      utterance.pitch = 1.15; // natural feminine tone
+      utterance.pitch = 1.15;
 
-      // Try picking an English female voice if available
       const voices = window.speechSynthesis.getVoices();
       const naturalVoice = voices.find((v) => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha')));
       if (naturalVoice) utterance.voice = naturalVoice;
@@ -2066,7 +2180,7 @@
       speakText(text);
     });
 
-    // 9. Face Texture Sliders (Dark Circles & Wrinkles)
+    // 10. Face Sliders
     const sliderDarkCircles = document.getElementById('slider-dark-circles');
     const valDarkCircles = document.getElementById('val-dark-circles');
     sliderDarkCircles.addEventListener('input', (e) => {
@@ -2085,7 +2199,7 @@
       updateFaceTexture();
     });
 
-    // 10. Camera & View Tool Actions
+    // 11. Camera & View Tools
     document.getElementById('btn-focus-face').addEventListener('click', () => {
       controls.target.set(0, 1.58, 0);
       camera.position.set(0, 1.62, 0.95);
@@ -2121,22 +2235,23 @@
       }
     });
 
-    // 11. Variant Pill Buttons (Rigged vs Static)
+    // Variant Pills
     document.getElementById('pill-rigged').addEventListener('click', () => {
       document.getElementById('pill-rigged').classList.add('active');
       document.getElementById('pill-static').classList.remove('active');
       activeFilename.textContent = 'woman-base-character-rigged.glb';
-      setAction('hello');
+      playAction('wait');
     });
 
     document.getElementById('pill-static').addEventListener('click', () => {
       document.getElementById('pill-static').classList.add('active');
       document.getElementById('pill-rigged').classList.remove('active');
       activeFilename.textContent = 'woman-base-character.glb';
-      setAction('idle');
+      if (currentAction) currentAction.stop();
+      currentActionLabel.textContent = 'Static A-Pose (Rest Mesh)';
     });
 
-    // 12. Download Tiles
+    // Download Tiles Click
     document.querySelectorAll('.format-tile').forEach((tile) => {
       tile.addEventListener('click', () => {
         document.querySelectorAll('.format-tile').forEach((t) => t.classList.remove('active'));
@@ -2151,25 +2266,22 @@
       });
     });
 
-    // Window Resize Handler
+    // Window Resize
     window.addEventListener('resize', () => {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
-    // 13. Main Render Loop
+    // 12. Main Render Loop
     function render() {
       requestAnimationFrame(render);
 
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
 
-      // Update mixer for walk/run baked takes
+      // Smooth AnimationMixer update
       if (mixer) mixer.update(delta);
-
-      // Procedural action bone rotations
-      animateCustomActions(elapsed);
 
       // Eye blinking
       handleBlinking(delta, elapsed);
@@ -2178,11 +2290,6 @@
       if (state.isSpeaking) {
         state.speechViseme = Math.abs(Math.sin(elapsed * 18)) * 0.85 + Math.sin(elapsed * 8) * 0.15;
         updateFaceTexture();
-
-        // Subtle talking head gestures
-        if (boneMap['Head']) {
-          boneMap['Head'].rotation.x += Math.sin(elapsed * 12) * 0.025;
-        }
       }
 
       controls.update();

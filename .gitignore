@@ -2,3 +2,4 @@
 .system_generated/
 scratch/
 *.log
+.vercel
