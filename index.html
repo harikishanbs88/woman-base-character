@@ -1516,10 +1516,22 @@
 
   <!-- Real-Time Lifelike Three.js Engine Script -->
   <script type="module">
+    window.__errors = [];
+    window.addEventListener('error', (e) => {
+      window.__errors.push({ msg: e.message, file: e.filename, line: e.lineno, stack: e.error ? e.error.stack : null });
+      console.error('GLOBAL SCRIPT ERROR:', e.message, e.filename, e.lineno, e.error);
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      window.__errors.push({ msg: 'unhandledrejection', reason: e.reason });
+      console.error('UNHANDLED REJECTION:', e.reason);
+    });
+
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+    window.THREE = THREE;
 
     // Application State
     const state = {
@@ -1556,7 +1568,7 @@
     scene.fog = new THREE.FogExp2(0x0e1116, 0.12);
 
     const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
-    camera.position.set(0, 1.25, 3.2);
+    camera.position.set(0, 1.20, 2.45);
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -1569,7 +1581,7 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.target.set(0, 1.1, 0);
+    controls.target.set(0, 1.05, 0);
     controls.maxPolarAngle = Math.PI / 2 + 0.05;
     controls.minDistance = 0.6;
     controls.maxDistance = 6.0;
@@ -1643,66 +1655,108 @@
       return res.normalize();
     }
 
-    // True 3D Attached Red Frock / Gown (Flared skirt, 3D folds, gold embroidery, attached to skeleton!)
+    // Authentic Human Base Quaternions (Extracted from character's baked human motion)
+    // Ensures the character stands in natural human contrapposto posture with relaxed arms at sides, NOT T-pose!
+    const humanBaseQuat = {
+      Hips: new THREE.Quaternion(0.00138, 0.01162, -0.00568, 0.99991),
+      LeftUpLeg: new THREE.Quaternion(0.96832, 0.04104, -0.04163, 0.24274),
+      LeftLeg: new THREE.Quaternion(0.50671, 0.01207, 0.06150, 0.85983),
+      LeftFoot: new THREE.Quaternion(-0.25467, 0.12585, -0.10253, 0.95330),
+      RightUpLeg: new THREE.Quaternion(0.99386, 0.02095, 0.01006, 0.10816),
+      RightLeg: new THREE.Quaternion(0.20181, -0.01551, 0.01044, 0.97924),
+      RightFoot: new THREE.Quaternion(-0.34664, -0.07460, 0.09533, 0.93015),
+      Spine: new THREE.Quaternion(-0.02314, 0.00049, -0.00062, 0.99973),
+      Spine01: new THREE.Quaternion(0.02151, 0.00097, 0.00640, 0.99974),
+      Spine02: new THREE.Quaternion(0.02816, 0.00060, 0.00507, 0.99959),
+      LeftShoulder: new THREE.Quaternion(-0.56210, -0.36722, -0.56262, 0.48233),
+      LeftArm: new THREE.Quaternion(-0.33153, 0.57867, -0.37290, 0.64510),
+      LeftForeArm: new THREE.Quaternion(0.08093, 0.15848, -0.05234, 0.98264),
+      LeftHand: new THREE.Quaternion(-0.07530, -0.09856, -0.06138, 0.99037),
+      RightShoulder: new THREE.Quaternion(-0.57024, 0.34171, 0.56609, 0.48743),
+      RightArm: new THREE.Quaternion(-0.22236, -0.55736, 0.42628, 0.67688),
+      RightForeArm: new THREE.Quaternion(0.17142, -0.11221, 0.10509, 0.97312),
+      RightHand: new THREE.Quaternion(-0.02629, 0.24676, 0.04474, 0.96768),
+      Head: new THREE.Quaternion(0.02508, -0.05004, -0.03024, 0.99797),
+      neck: new THREE.Quaternion(0.02723, 0.01905, -0.00737, 0.99942)
+    };
+
+    function hMul(bone, rx, ry, rz) {
+      const base = humanBaseQuat[bone] || restQuat[bone];
+      if (!base) return new THREE.Quaternion();
+      return qMul(base, rx, ry, rz);
+    }
+
+    // True 3D Attached Red Frock / Gown (Tailored sweetheart bodice, shoulder straps, gold lace belt & flared skirt)
     let frockMesh = null;
+    let baseFacePositions = null;
+    let facialGroups = null;
 
     function createRedFrockSkinnedMesh(baseSkinnedMesh) {
       if (!baseSkinnedMesh || !baseSkinnedMesh.skeleton) return;
 
-      const rings = 32;
-      const segments = 40;
+      const rings = 54;
+      const segments = 48;
       const positions = [];
       const uvs = [];
       const skinIndices = [];
       const skinWeights = [];
       const indices = [];
 
-      // y from 0.38 (flared frock skirt hem) up to 1.33 (sweetheart bodice neckline)
-      const yMin = 0.38;
-      const yMax = 1.33;
+      // y from 0.44 (flared frock skirt hem just below knees) up to 1.36 (sweetheart bodice neckline)
+      const yMin = 0.44;
+      const yMax = 1.36;
 
       for (let r = 0; r <= rings; r++) {
-        const frac = r / rings; // 0 at hemline, 1 at chest neckline
+        const frac = r / rings; // 0 at hemline, 1 at bodice neckline
         const y = yMin + frac * (yMax - yMin);
 
-        let radius = 0.165;
+        // Female gown silhouette tailored over body with zero skin poke-through:
+        let radX = 0.168;
+        let radZ = 0.126;
         let zCenter = 0.005;
 
-        if (y < 0.98) {
-          // Flared A-line frock skirt! Has distinct physical 3D volume & clearance over legs
-          const skirtFrac = (0.98 - y) / (0.98 - yMin); // 0 at waist, 1 at hem
-          radius = 0.168 + 0.28 * Math.pow(skirtFrac, 1.25);
-          zCenter = -0.015 * skirtFrac;
-        } else if (y < 1.05) {
+        if (y < 0.94) {
+          // Flared A-line frock skirt cascading from waist down to hem!
+          const skirtFrac = (0.94 - y) / (0.94 - yMin);
+          radX = 0.190 + 0.220 * Math.pow(skirtFrac, 1.15);
+          radZ = 0.150 + 0.200 * Math.pow(skirtFrac, 1.15);
+          zCenter = -0.008 * skirtFrac;
+        } else if (y < 1.08) {
           // Fitted waistline
-          radius = 0.162;
-          zCenter = 0.002;
+          radX = 0.165;
+          radZ = 0.120;
+          zCenter = 0.005;
         } else if (y < 1.20) {
-          // Fitted ribcage
-          radius = 0.178;
-          zCenter = 0.008;
+          // Ribcage
+          radX = 0.170;
+          radZ = 0.128;
+          zCenter = 0.010;
+        } else if (y < 1.30) {
+          // Bustier bodice
+          radX = 0.180;
+          radZ = 0.148;
+          zCenter = 0.024;
         } else {
-          // Bodice bust
-          radius = 0.188;
-          zCenter = 0.015;
+          // Sweetheart neckline / upper chest
+          const topFrac = (y - 1.30) / (yMax - 1.30);
+          radX = 0.176 - topFrac * 0.012;
+          radZ = 0.140 - topFrac * 0.015;
+          zCenter = 0.018;
         }
 
-        // Armature bone weighting:
+        // Armature bone weighting matching rigged.glb joint mapping:
         // Joint 11 = Spine (y ~ 1.28)
         // Joint 10 = Spine01 (y ~ 1.16)
         // Joint 9  = Spine02 (y ~ 1.05)
         // Joint 0  = Hips (y ~ 0.94)
-        // Joint 1  = LeftUpLeg
-        // Joint 5  = RightUpLeg
         let b1 = 0, b2 = 0, w1 = 1.0, w2 = 0.0;
         if (y >= 1.22) {
-          b1 = 11; b2 = 10; w1 = (y - 1.22) / 0.11; w2 = 1.0 - w1;
+          b1 = 11; b2 = 10; w1 = (y - 1.22) / 0.14; w2 = 1.0 - w1;
         } else if (y >= 1.10) {
           b1 = 10; b2 = 9; w1 = (y - 1.10) / 0.12; w2 = 1.0 - w1;
-        } else if (y >= 0.98) {
-          b1 = 9; b2 = 0; w1 = (y - 0.98) / 0.12; w2 = 1.0 - w1;
+        } else if (y >= 0.96) {
+          b1 = 9; b2 = 0; w1 = (y - 0.96) / 0.14; w2 = 1.0 - w1;
         } else {
-          // Skirt follows hips primarily
           b1 = 0; b2 = 0; w1 = 1.0; w2 = 0.0;
         }
 
@@ -1710,22 +1764,35 @@
           const u = s / segments;
           const angle = u * Math.PI * 2;
 
-          // Realistic 3D fabric ripples / vertical pleat waves in skirt
+          // Soft cascading 3D pleat flounces in the skirt
           let pleat = 1.0;
-          if (y < 0.98) {
-            const skirtFrac = (0.98 - y) / (0.98 - yMin);
-            pleat = 1.0 + 0.075 * skirtFrac * Math.sin(angle * 12);
+          if (y < 0.95) {
+            const skirtFrac = (0.95 - y) / (0.95 - yMin);
+            pleat = 1.0 + 0.055 * skirtFrac * Math.sin(angle * 12);
           }
 
-          const x = Math.cos(angle) * radius * pleat;
-          const z = zCenter + Math.sin(angle) * (radius * 0.89) * pleat;
+          // Sweetheart neckline contour at upper bust
+          let yOffset = 0;
+          if (r >= rings - 4) {
+            const rimFrac = (r - (rings - 4)) / 4;
+            const frontCos = Math.cos(angle);
+            const frontZ = Math.sin(angle);
+            if (frontZ > 0) {
+              yOffset = rimFrac * (-0.030 * Math.pow(Math.abs(frontCos), 2.2) + 0.018 * Math.sin(angle * 2));
+            } else {
+              yOffset = rimFrac * -0.015;
+            }
+          }
 
-          positions.push(x, y, z);
+          const x = Math.cos(angle) * radX * pleat;
+          const z = zCenter + Math.sin(angle) * radZ * pleat;
+
+          positions.push(x, y + yOffset, z);
           uvs.push(u, frac);
 
           let finalB1 = b1, finalB2 = b2, finalW1 = w1, finalW2 = w2;
-          if (y < 0.88) {
-            const legBlend = Math.min(0.25, (0.88 - y) * 0.35);
+          if (y < 0.80) {
+            const legBlend = Math.min(0.25, (0.80 - y) * 0.35);
             if (x > 0.02) {
               finalB2 = 1; finalW2 = legBlend; finalW1 = 1.0 - legBlend;
             } else if (x < -0.02) {
@@ -1738,7 +1805,7 @@
         }
       }
 
-      // Triangular indices
+      // Triangular indices for body dress
       for (let r = 0; r < rings; r++) {
         for (let s = 0; s < segments; s++) {
           const a = r * (segments + 1) + s;
@@ -1751,6 +1818,43 @@
         }
       }
 
+      // Add Dual Haute Couture Shoulder Straps (over left & right shoulders)
+      const strapSegments = 16;
+      const strapWidth = 0.016;
+      [-0.105, 0.105].forEach((strapX) => {
+        const baseIdx = positions.length / 3;
+        const bShoulder = strapX > 0 ? 12 : 20; // LeftShoulder=12, RightShoulder=20
+        for (let i = 0; i <= strapSegments; i++) {
+          const t = i / strapSegments; // 0 front bust -> 0.5 over shoulder apex -> 1.0 back
+          // Front bust (y=1.34, z=0.125) -> Shoulder apex (y=1.425, z=0.005) -> Back (y=1.30, z=-0.095)
+          const sy = 1.34 + 0.085 * Math.sin(t * Math.PI) - 0.04 * t;
+          const sz = 0.125 - 0.220 * t;
+          const sx = strapX * (1.0 + 0.10 * Math.sin(t * Math.PI));
+
+          positions.push(sx - strapWidth * 0.5, sy, sz);
+          uvs.push(0.50, t * 0.35 + 0.35); // map to deep ruby velvet area of texture
+          skinIndices.push(bShoulder, 11, 0, 0);
+          skinWeights.push(0.70, 0.30, 0, 0);
+
+          positions.push(sx + strapWidth * 0.5, sy, sz);
+          uvs.push(0.55, t * 0.35 + 0.35);
+          skinIndices.push(bShoulder, 11, 0, 0);
+          skinWeights.push(0.70, 0.30, 0, 0);
+        }
+
+        for (let i = 0; i < strapSegments; i++) {
+          const v1 = baseIdx + i * 2;
+          const v2 = baseIdx + (i + 1) * 2;
+          const v3 = baseIdx + (i + 1) * 2 + 1;
+          const v4 = baseIdx + i * 2 + 1;
+          indices.push(v1, v2, v4);
+          indices.push(v2, v3, v4);
+          // Double side rendering
+          indices.push(v4, v2, v1);
+          indices.push(v4, v3, v2);
+        }
+      });
+
       const dressGeo = new THREE.BufferGeometry();
       dressGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
       dressGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
@@ -1759,61 +1863,54 @@
       dressGeo.setIndex(indices);
       dressGeo.computeVertexNormals();
 
-      // Procedural Fabric Canvas Texture (Deep Crimson Velvet with Gold Lace borders)
+      // Procedural Fabric Canvas Texture (Crimson Silk Velvet with Gold Filigree borders)
       const dTexCanvas = document.createElement('canvas');
       dTexCanvas.width = 1024;
       dTexCanvas.height = 1024;
       const dCtx = dTexCanvas.getContext('2d');
 
-      // Base crimson silk/velvet gradient
-      const grad = dCtx.createLinearGradient(0, 0, 0, 1024);
-      grad.addColorStop(0, '#5a020d'); // deep velvet near hem
-      grad.addColorStop(0.3, '#8e0618');
-      grad.addColorStop(0.65, '#b00922'); // waist
-      grad.addColorStop(1.0, '#7a0414'); // bodice top
+      // Gradient from hem (y=1024) to neckline (y=0)
+      const grad = dCtx.createLinearGradient(0, 1024, 0, 0);
+      grad.addColorStop(0, '#58040f'); // deep velvet hem
+      grad.addColorStop(0.35, '#8c0617');
+      grad.addColorStop(0.70, '#b80922'); // glowing ruby bust
+      grad.addColorStop(1.0, '#7a0514'); // sweetheart neckline
       dCtx.fillStyle = grad;
       dCtx.fillRect(0, 0, 1024, 1024);
 
-      // Velvet weave micro-pattern
-      dCtx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      // Velvet weave sheen
+      dCtx.fillStyle = 'rgba(255, 255, 255, 0.035)';
       for (let i = 0; i < 1024; i += 8) {
         dCtx.fillRect(i, 0, 4, 1024);
       }
 
-      // 1. Ornate Gold Embroidery at Hemline (frac = 0, y ~ 0.38)
-      dCtx.fillStyle = '#e6b830';
-      dCtx.fillRect(0, 0, 1024, 28);
-      dCtx.strokeStyle = '#fff088';
-      dCtx.lineWidth = 3;
-      dCtx.beginPath();
-      for (let x = 0; x <= 1024; x += 16) {
-        dCtx.arc(x + 8, 28, 8, 0, Math.PI);
-      }
-      dCtx.stroke();
-
-      // 2. Gold Lace Corset Belt at Waist (frac ~ 0.63, y ~ 0.98)
-      const waistY = 1024 * 0.63;
-      dCtx.fillStyle = '#d4a222';
-      dCtx.fillRect(0, waistY - 14, 1024, 28);
-      dCtx.strokeStyle = '#fff5a0';
+      // 1. Ornate Gold Scalloped Lace at Hemline (v = 0 -> canvas bottom y=990..1024)
+      dCtx.fillStyle = '#dfa828';
+      dCtx.fillRect(0, 994, 1024, 30);
+      dCtx.strokeStyle = '#fff298';
       dCtx.lineWidth = 2.5;
       dCtx.beginPath();
-      for (let x = 0; x <= 1024; x += 32) {
-        dCtx.moveTo(x, waistY - 14);
-        dCtx.lineTo(x + 16, waistY + 14);
-        dCtx.lineTo(x + 32, waistY - 14);
+      for (let x = 0; x <= 1024; x += 16) {
+        dCtx.arc(x + 8, 994, 8, Math.PI, 0);
       }
       dCtx.stroke();
 
-      // 3. Gold Lace Neckline Trim (frac = 1.0, y ~ 1.33)
-      dCtx.fillStyle = '#e6b830';
-      dCtx.fillRect(0, 1000, 1024, 24);
-      dCtx.strokeStyle = '#fff8b0';
-      dCtx.lineWidth = 3;
+      // 2. Gold Belt at Waist (v ~ 0.65 -> canvas y ~ 358)
+      const waistY = 358;
+      dCtx.fillStyle = '#b8861e';
+      dCtx.fillRect(0, waistY - 10, 1024, 20);
+      dCtx.strokeStyle = '#fff098';
+      dCtx.lineWidth = 2.0;
+      dCtx.strokeRect(0, waistY - 10, 1024, 20);
+
+      // 3. Delicate Gold Piping at Sweetheart Neckline
+      dCtx.fillStyle = '#6a0410';
+      dCtx.fillRect(0, 0, 1024, 24);
+      dCtx.strokeStyle = '#dfa828';
+      dCtx.lineWidth = 2.0;
       dCtx.beginPath();
-      for (let x = 0; x <= 1024; x += 16) {
-        dCtx.arc(x + 8, 1000, 8, Math.PI, 0);
-      }
+      dCtx.moveTo(0, 24);
+      dCtx.lineTo(1024, 24);
       dCtx.stroke();
 
       const dressTexture = new THREE.CanvasTexture(dTexCanvas);
@@ -1837,8 +1934,118 @@
       characterModel.add(frockMesh);
     }
 
+    // 3D Physical Facial Deformation Engine (Mouth Talking, Smiles, Frowns & Eyelid Blinking)
+    function init3DFaceMorphs(mesh) {
+      if (!mesh || !mesh.geometry) return;
+      const geo = mesh.geometry;
+      const pos = geo.attributes.position;
+      baseFacePositions = pos.array.slice();
+
+      const mouthLower = [];
+      const mouthCorners = [];
+      const eyelidsUpper = [];
+      const eyelidsLower = [];
+      const cheeks = [];
+
+      for (let i = 0; i < pos.count; i++) {
+        const x = baseFacePositions[i * 3];
+        const y = baseFacePositions[i * 3 + 1];
+        const z = baseFacePositions[i * 3 + 2];
+
+        if (z > 0.05 && y > 1.40 && y < 1.66) {
+          // Lower lip & jaw vertices
+          if (y >= 1.452 && y <= 1.482 && Math.abs(x) < 0.032 && z > 0.082) {
+            const w = (1 - Math.abs(x) / 0.032) * Math.sin(((y - 1.452) / 0.030) * Math.PI);
+            mouthLower.push({ i, w: Math.max(0.20, w) });
+          }
+          // Mouth corner vertices
+          if (y >= 1.468 && y <= 1.488 && Math.abs(x) >= 0.022 && Math.abs(x) <= 0.038 && z > 0.075) {
+            mouthCorners.push({ i, side: x > 0 ? 1 : -1 });
+          }
+          // Upper eyelid vertices
+          if (y >= 1.576 && y <= 1.604 && Math.abs(x) >= 0.020 && Math.abs(x) <= 0.054 && z > 0.065) {
+            eyelidsUpper.push({ i, w: 1.0 });
+          }
+          // Lower eyelid vertices
+          if (y >= 1.558 && y <= 1.574 && Math.abs(x) >= 0.020 && Math.abs(x) <= 0.054 && z > 0.065) {
+            eyelidsLower.push({ i, w: 0.6 });
+          }
+          // Cheek vertices
+          if (y >= 1.500 && y <= 1.535 && Math.abs(x) >= 0.030 && Math.abs(x) <= 0.058 && z > 0.080) {
+            cheeks.push({ i, side: x > 0 ? 1 : -1 });
+          }
+        }
+      }
+
+      facialGroups = { mouthLower, mouthCorners, eyelidsUpper, eyelidsLower, cheeks };
+    }
+
+    function updateFacialDeformations() {
+      if (!skinnedMesh || !baseFacePositions || !facialGroups) return;
+      const pos = skinnedMesh.geometry.attributes.position;
+
+      // Reset to authentic base head geometry
+      pos.array.set(baseFacePositions);
+
+      // 1. Mouth Speech Articulation (Visemes)
+      const viseme = state.speechViseme || 0;
+      if (viseme > 0.01) {
+        const dy = -0.016 * viseme;
+        const dz = -0.005 * viseme;
+        const group = facialGroups.mouthLower;
+        for (let k = 0; k < group.length; k++) {
+          const item = group[k];
+          pos.array[item.i * 3 + 1] += dy * item.w;
+          pos.array[item.i * 3 + 2] += dz * item.w;
+        }
+      }
+
+      // 2. Facial Expressions (Happy Smile vs Sad Frown)
+      if (state.expression === 'happy') {
+        const corners = facialGroups.mouthCorners;
+        for (let k = 0; k < corners.length; k++) {
+          const item = corners[k];
+          pos.array[item.i * 3 + 1] += 0.009; // UP!
+          pos.array[item.i * 3]     += 0.005 * item.side; // OUT!
+        }
+        const ch = facialGroups.cheeks;
+        for (let k = 0; k < ch.length; k++) {
+          const item = ch[k];
+          pos.array[item.i * 3 + 1] += 0.006;
+          pos.array[item.i * 3 + 2] += 0.004;
+        }
+      } else if (state.expression === 'sad' || state.expression === 'crying') {
+        const corners = facialGroups.mouthCorners;
+        for (let k = 0; k < corners.length; k++) {
+          const item = corners[k];
+          pos.array[item.i * 3 + 1] -= 0.012; // DOWN!
+          pos.array[item.i * 3]     -= 0.003 * item.side; // IN!
+        }
+      }
+
+      // 3. Physical Eyelid Blinking (Smooth closure and opening)
+      const blink = state.blinkValue || 0;
+      if (blink > 0.01) {
+        const bY = -0.022 * blink;
+        const bZ = 0.004 * blink;
+        const uLids = facialGroups.eyelidsUpper;
+        for (let k = 0; k < uLids.length; k++) {
+          const item = uLids[k];
+          pos.array[item.i * 3 + 1] += bY * item.w;
+          pos.array[item.i * 3 + 2] += bZ * item.w;
+        }
+        const lLids = facialGroups.eyelidsLower;
+        for (let k = 0; k < lLids.length; k++) {
+          const item = lLids[k];
+          pos.array[item.i * 3 + 1] += 0.006 * blink * item.w;
+        }
+      }
+
+      pos.needsUpdate = true;
+    }
+
     // 4. Procedural Lifelike Human Animation Generator
-    // Mathematically verified bone trajectories matching rigged.glb joint orientations!
+    // Based on authentic natural human resting posture (arms at sides, relaxed shoulders, upright spine)
     function createProceduralClips() {
       if (!boneMap['Hips']) return;
 
@@ -1856,7 +2063,7 @@
           const values = [];
           for (let i = 0; i <= numKeys; i++) {
             const t = times[i];
-            const q = keyframesFn(boneName, t, duration) || restQuat[boneName];
+            const q = keyframesFn(boneName, t, duration) || humanBaseQuat[boneName] || restQuat[boneName];
             values.push(q.x, q.y, q.z, q.w);
           }
           tracks.push(new THREE.QuaternionKeyframeTrack(`${boneName}.quaternion`, times, values));
@@ -1875,8 +2082,7 @@
         return new THREE.AnimationClip(name, duration, tracks);
       }
 
-      // --- A. WAIT (Lifelike Human Waiting / Contrapposto Idle Stance) ---
-      // Natural 4.8s human breathing cycle, subtle weight shift, micro head surveying, relaxed arms
+      // --- A. WAIT (Natural Lifelike Human Waiting Idle - Relaxed Arms At Sides) ---
       const waitClip = makeClip('wait', 4.8, (bone, t, dur) => {
         const phase = (t / dur) * Math.PI * 2;
         const breath = Math.sin(phase);
@@ -1884,104 +2090,92 @@
 
         if (bone === '__HIPS_POS__') {
           return new THREE.Vector3(
-            restPos['Hips'].x + sway * 0.6,
-            restPos['Hips'].y + breath * 0.5,
+            restPos['Hips'].x + sway * 0.4,
+            restPos['Hips'].y + breath * 0.35,
             restPos['Hips'].z
           );
         }
         if (bone === 'Hips') {
-          return qMul(restQuat['Hips'], breath * 0.01, sway * 0.015, sway * 0.02);
+          return hMul('Hips', breath * 0.012, sway * 0.015, sway * 0.018);
         }
         if (bone === 'Spine' || bone === 'Spine01' || bone === 'Spine02') {
-          return qMul(restQuat[bone], -0.015 * breath, -0.01 * sway, 0);
-        }
-        if (bone === 'RightShoulder' || bone === 'LeftShoulder') {
-          return qMul(restQuat[bone], 0, 0, breath * 0.008);
+          return hMul(bone, -0.015 * breath, -0.008 * sway, 0);
         }
         if (bone === 'Head') {
-          return qMul(restQuat['Head'], breath * 0.015, Math.sin(phase * 0.5) * 0.04, sway * 0.02);
+          return hMul('Head', breath * 0.012, Math.sin(phase * 0.5) * 0.045, sway * 0.015);
         }
         if (bone === 'RightArm') {
-          return qMul(restQuat['RightArm'], breath * 0.015, 0, -0.05 + breath * 0.02);
+          return hMul('RightArm', breath * 0.012, 0, breath * 0.015);
         }
         if (bone === 'RightForeArm') {
-          return qMul(restQuat['RightForeArm'], 0.20 + breath * 0.02, 0, 0);
+          return hMul('RightForeArm', 0.04 + breath * 0.02, 0, 0);
         }
         if (bone === 'LeftArm') {
-          return qMul(restQuat['LeftArm'], breath * 0.015, 0, 0.05 - breath * 0.02);
+          return hMul('LeftArm', breath * 0.012, 0, -breath * 0.015);
         }
         if (bone === 'LeftForeArm') {
-          return qMul(restQuat['LeftForeArm'], 0.20 + breath * 0.02, 0, 0);
+          return hMul('LeftForeArm', 0.04 + breath * 0.02, 0, 0);
         }
-        if (bone === 'LeftLeg') {
-          return qMul(restQuat['LeftLeg'], 0.04 * sway, 0, 0);
-        }
-        return restQuat[bone];
+        return humanBaseQuat[bone] || restQuat[bone];
       });
 
-      // --- B. HELLO (Friendly Upright High Arm Wave at Head Level - NO BOWING) ---
+      // --- B. HELLO (Friendly Upright High Arm Wave at Head Level) ---
       const helloClip = makeClip('hello', 2.8, (bone, t, dur) => {
         const phase = (t / dur) * Math.PI * 2;
-        const wave = Math.sin(phase * 3.2);
+        const wave = Math.sin(phase * 3.6);
         const breath = Math.sin(phase);
 
         if (bone === '__HIPS_POS__') {
           return new THREE.Vector3(restPos['Hips'].x, restPos['Hips'].y + breath * 0.25, restPos['Hips'].z);
         }
-        // Right Arm lifted upright, forearm pointing vertically up, hand waving high
+        // Right Arm lifted upright to head level, palm facing forward, waving cheerfully
         if (bone === 'RightArm') {
-          return qMul(restQuat['RightArm'], 1.20, -0.30, -0.60);
+          return qMul(humanBaseQuat['RightArm'], -0.45, -0.75, 1.35);
         }
         if (bone === 'RightForeArm') {
-          return qMul(restQuat['RightForeArm'], 0.90, 0, -0.80);
+          return qMul(humanBaseQuat['RightForeArm'], 0.65, 0, 0);
         }
         if (bone === 'RightHand') {
-          return qMul(restQuat['RightHand'], wave * 0.25, 0, wave * 0.35);
+          return qMul(humanBaseQuat['RightHand'], wave * 0.35, 0, wave * 0.45);
         }
         if (bone === 'Head') {
-          return qMul(restQuat['Head'], 0.05, -0.08, -0.04);
-        }
-        if (bone === 'Spine' || bone === 'Spine01') {
-          return qMul(restQuat[bone], 0.02, 0.02, 0);
+          return hMul('Head', 0.03, -0.06, -0.03);
         }
         if (bone === 'LeftArm') {
-          return qMul(restQuat['LeftArm'], 0.05, 0, 0.08);
+          return hMul('LeftArm', 0, 0, 0);
         }
         if (bone === 'LeftForeArm') {
-          return qMul(restQuat['LeftForeArm'], 0.20, 0, 0);
+          return hMul('LeftForeArm', 0, 0, 0);
         }
-        return restQuat[bone];
+        return humanBaseQuat[bone] || restQuat[bone];
       });
 
-      // --- C. BYE (High Energy Farewell Wave Elevated Above Shoulder - NO BOWING) ---
+      // --- C. BYE (High Energy Farewell Wave Above Head) ---
       const byeClip = makeClip('bye', 2.4, (bone, t, dur) => {
         const phase = (t / dur) * Math.PI * 2;
-        const wave = Math.sin(phase * 3.6);
+        const wave = Math.sin(phase * 3.8);
         const sway = Math.sin(phase);
 
         if (bone === '__HIPS_POS__') {
-          return new THREE.Vector3(restPos['Hips'].x + sway * 0.4, restPos['Hips'].y, restPos['Hips'].z);
+          return new THREE.Vector3(restPos['Hips'].x + sway * 0.3, restPos['Hips'].y, restPos['Hips'].z);
         }
-        // Right Arm lifted high and outward, hand elevated above head level
+        // Right Arm lifted high and outward, hand waving above head
         if (bone === 'RightArm') {
-          return qMul(restQuat['RightArm'], 1.20, -0.30, -0.80);
+          return qMul(humanBaseQuat['RightArm'], -0.55, -0.85, 1.55);
         }
         if (bone === 'RightForeArm') {
-          return qMul(restQuat['RightForeArm'], 0.80, 0, -0.80);
+          return qMul(humanBaseQuat['RightForeArm'], 0.70, 0, 0);
         }
         if (bone === 'RightHand') {
-          return qMul(restQuat['RightHand'], wave * 0.35, 0, wave * 0.45);
-        }
-        if (bone === 'Hips') {
-          return qMul(restQuat['Hips'], 0, sway * 0.02, sway * 0.02);
+          return qMul(humanBaseQuat['RightHand'], wave * 0.40, 0, wave * 0.50);
         }
         if (bone === 'Head') {
-          return qMul(restQuat['Head'], -0.04, -0.10, -0.06);
+          return hMul('Head', -0.03, -0.08, -0.04);
         }
         if (bone === 'LeftArm') {
-          return qMul(restQuat['LeftArm'], 0.05, 0, 0.06);
+          return hMul('LeftArm', 0, 0, 0);
         }
-        return restQuat[bone];
+        return humanBaseQuat[bone] || restQuat[bone];
       });
 
       // --- D. CHECKING (Wrist Watch & Appearance Inspection) ---
@@ -1991,31 +2185,29 @@
 
         if (bone === '__HIPS_POS__') return restPos['Hips'];
 
+        // Left arm lifts to chest level to view wrist
         if (bone === 'LeftArm') {
-          return qMul(restQuat['LeftArm'], 0.40, 0, -0.20);
+          return qMul(humanBaseQuat['LeftArm'], 0.85, 0.40, 0.50);
         }
         if (bone === 'LeftForeArm') {
-          return qMul(restQuat['LeftForeArm'], 1.40, 0, -0.80);
+          return qMul(humanBaseQuat['LeftForeArm'], 1.45, 0, -0.65);
         }
         if (bone === 'LeftHand') {
-          return qMul(restQuat['LeftHand'], 0.15, -0.20, 0);
+          return qMul(humanBaseQuat['LeftHand'], 0.20, -0.15, 0);
         }
         if (bone === 'Head') {
-          return qMul(restQuat['Head'], 0.26 + cycle * 0.03, 0.20, 0);
+          return hMul('Head', 0.24 + cycle * 0.03, 0.18, 0);
         }
         if (bone === 'Spine' || bone === 'Spine01') {
-          return qMul(restQuat[bone], 0.05, 0.03, 0);
+          return hMul(bone, 0.04, 0.03, 0);
         }
         if (bone === 'RightArm') {
-          return qMul(restQuat['RightArm'], 0, 0, -0.05);
+          return hMul('RightArm', 0, 0, 0);
         }
-        if (bone === 'RightForeArm') {
-          return qMul(restQuat['RightForeArm'], 0.20, 0, 0);
-        }
-        return restQuat[bone];
+        return humanBaseQuat[bone] || restQuat[bone];
       });
 
-      // --- E. SITTING (Anatomically Smooth Seated Pose) ---
+      // --- E. SITTING (Anatomically Natural Seated Pose) ---
       const sittingClip = makeClip('sitting', 3.0, (bone, t, dur) => {
         const phase = (t / dur) * Math.PI * 2;
         const breath = Math.sin(phase);
@@ -2023,41 +2215,35 @@
         if (bone === '__HIPS_POS__') {
           return new THREE.Vector3(
             restPos['Hips'].x,
-            restPos['Hips'].y - 42.0,
-            restPos['Hips'].z - 10.0 + breath * 0.15
+            restPos['Hips'].y - 38.0,
+            restPos['Hips'].z - 12.0 + breath * 0.15
           );
         }
         if (bone === 'Hips') {
-          return qMul(restQuat['Hips'], 0.04, 0, 0);
+          return hMul('Hips', 0.04, 0, 0);
         }
         if (bone === 'RightUpLeg' || bone === 'LeftUpLeg') {
-          return qMul(restQuat[bone], -1.35, 0, 0);
+          return hMul(bone, -1.35, 0, 0);
         }
         if (bone === 'RightLeg' || bone === 'LeftLeg') {
-          return qMul(restQuat[bone], 1.45, 0, 0);
+          return hMul(bone, 1.42, 0, 0);
         }
         if (bone === 'RightFoot' || bone === 'LeftFoot') {
-          return qMul(restQuat[bone], -0.10, 0, 0);
+          return hMul(bone, -0.08, 0, 0);
         }
         if (bone === 'Spine' || bone === 'Spine01') {
-          return qMul(restQuat[bone], -0.04 + breath * 0.015, 0, 0);
+          return hMul(bone, -0.04 + breath * 0.015, 0, 0);
         }
         if (bone === 'Head') {
-          return qMul(restQuat['Head'], 0.04 + breath * 0.01, 0, 0);
+          return hMul('Head', 0.04 + breath * 0.01, 0, 0);
         }
-        if (bone === 'RightArm') {
-          return qMul(restQuat['RightArm'], 0.15, 0, -0.10);
+        if (bone === 'RightArm' || bone === 'LeftArm') {
+          return hMul(bone, 0.10, 0, 0);
         }
-        if (bone === 'RightForeArm') {
-          return qMul(restQuat['RightForeArm'], 0.85, 0, 0);
+        if (bone === 'RightForeArm' || bone === 'LeftForeArm') {
+          return hMul(bone, 0.75, 0, 0);
         }
-        if (bone === 'LeftArm') {
-          return qMul(restQuat['LeftArm'], 0.15, 0, 0.10);
-        }
-        if (bone === 'LeftForeArm') {
-          return qMul(restQuat['LeftForeArm'], 0.85, 0, 0);
-        }
-        return restQuat[bone];
+        return humanBaseQuat[bone] || restQuat[bone];
       });
 
       // --- F. DANCING (Smooth Rhythmic Human Groove) ---
@@ -2065,43 +2251,37 @@
         const phase = (t / dur) * Math.PI * 2;
         const beat = phase * 2;
         const hipSway = Math.sin(phase);
-        const bounce = Math.abs(Math.sin(beat)) * 2.2;
+        const bounce = Math.abs(Math.sin(beat)) * 1.8;
 
         if (bone === '__HIPS_POS__') {
           return new THREE.Vector3(
-            restPos['Hips'].x + hipSway * 1.5,
+            restPos['Hips'].x + hipSway * 1.2,
             restPos['Hips'].y - bounce,
             restPos['Hips'].z
           );
         }
         if (bone === 'Hips') {
-          return qMul(restQuat['Hips'], 0.04, Math.cos(phase) * 0.08, hipSway * 0.12);
+          return hMul('Hips', 0.03, Math.cos(phase) * 0.08, hipSway * 0.12);
         }
         if (bone === 'Spine' || bone === 'Spine01') {
-          return qMul(restQuat[bone], Math.sin(beat) * 0.03, -Math.cos(phase) * 0.06, -hipSway * 0.08);
+          return hMul(bone, Math.sin(beat) * 0.03, -Math.cos(phase) * 0.06, -hipSway * 0.08);
         }
         if (bone === 'RightArm') {
-          return qMul(restQuat['RightArm'], 0.30 + Math.sin(phase) * 0.15, 0, -0.35);
+          return hMul('RightArm', 0.25 + Math.sin(phase) * 0.12, 0, -0.25);
         }
         if (bone === 'RightForeArm') {
-          return qMul(restQuat['RightForeArm'], 0.80 + Math.cos(beat) * 0.25, 0, 0);
+          return hMul('RightForeArm', 0.65 + Math.cos(beat) * 0.20, 0, 0);
         }
         if (bone === 'LeftArm') {
-          return qMul(restQuat['LeftArm'], 0.30 - Math.sin(phase) * 0.15, 0, 0.35);
+          return hMul('LeftArm', 0.25 - Math.sin(phase) * 0.12, 0, 0.25);
         }
         if (bone === 'LeftForeArm') {
-          return qMul(restQuat['LeftForeArm'], 0.80 + Math.sin(beat) * 0.25, 0, 0);
+          return hMul('LeftForeArm', 0.65 + Math.sin(beat) * 0.20, 0, 0);
         }
         if (bone === 'Head') {
-          return qMul(restQuat['Head'], Math.sin(beat) * 0.05, -Math.sin(phase) * 0.08, 0);
+          return hMul('Head', Math.sin(beat) * 0.04, -Math.sin(phase) * 0.06, 0);
         }
-        if (bone === 'RightLeg') {
-          return qMul(restQuat['RightLeg'], Math.abs(Math.sin(beat)) * 0.10, 0, 0);
-        }
-        if (bone === 'LeftLeg') {
-          return qMul(restQuat['LeftLeg'], Math.abs(Math.cos(beat)) * 0.10, 0, 0);
-        }
-        return restQuat[bone];
+        return humanBaseQuat[bone] || restQuat[bone];
       });
 
       // Register procedural actions in mixer
@@ -2117,49 +2297,68 @@
     gltfLoader.load(
       'rigged.glb',
       (gltf) => {
-        characterModel = gltf.scene;
-        characterModel.traverse((node) => {
-          if (node.isMesh || node.isSkinnedMesh) {
-            node.castShadow = true;
-            node.receiveShadow = true;
-            skinnedMesh = node;
-            characterMaterial = node.material;
-          }
-          if (node.isBone) {
-            boneMap[node.name] = node;
-            restQuat[node.name] = node.quaternion.clone();
-            restPos[node.name] = node.position.clone();
-          }
-        });
-
-        // Initialize Animation Mixer
-        mixer = new THREE.AnimationMixer(characterModel);
-
-        // Register baked takes (walk, run)
-        if (gltf.animations) {
-          gltf.animations.forEach((clip) => {
-            if (clip.name === 'walk') actions['walk'] = mixer.clipAction(clip);
-            if (clip.name === 'run') actions['run'] = mixer.clipAction(clip);
+        try {
+          characterModel = gltf.scene;
+          characterModel.traverse((node) => {
+            if (node.isMesh || node.isSkinnedMesh) {
+              node.castShadow = true;
+              node.receiveShadow = true;
+              skinnedMesh = node;
+              characterMaterial = node.material;
+            }
+            if (node.isBone) {
+              boneMap[node.name] = node;
+              restQuat[node.name] = node.quaternion.clone();
+              restPos[node.name] = node.position.clone();
+            }
           });
+
+          // Initialize Animation Mixer
+          mixer = new THREE.AnimationMixer(characterModel);
+
+          // Register baked takes (walk, run)
+          if (gltf.animations) {
+            gltf.animations.forEach((clip) => {
+              if (clip.name === 'walk') actions['walk'] = mixer.clipAction(clip);
+              if (clip.name === 'run') actions['run'] = mixer.clipAction(clip);
+            });
+          }
+
+          // Create the lifelike procedural human clips
+          createProceduralClips();
+
+          // Start with the lifelike human WAIT animation
+          if (actions['wait']) {
+            currentAction = actions['wait'];
+            currentAction.play();
+          }
+
+          // Initialize Face Texture Shading (Blinking, Dark Circles & Wrinkles)
+          initFaceTextureMod(characterMaterial);
+
+          // Create and Attach 3D Red Frock / Gown to Skeleton!
+          createRedFrockSkinnedMesh(skinnedMesh);
+
+          // Initialize 3D Physical Facial Deformation Engine (Mouth Visemes, Smile, Frown, Blinking)
+          init3DFaceMorphs(skinnedMesh);
+
+          scene.add(characterModel);
+          loadingOverlay.classList.add('hidden');
+
+          window.state = state;
+          window.characterModel = characterModel;
+          window.skinnedMesh = skinnedMesh;
+          window.frockMesh = frockMesh;
+          window.mixer = mixer;
+          window.actions = actions;
+          window.playAction = playAction;
+          window.updateFaceTexture = updateFaceTexture;
+          window.triggerManualBlink = triggerManualBlink;
+        } catch (err) {
+          console.error('CRITICAL GLTF LOAD ERROR:', err);
+          window.__lastError = err.stack || err.message;
+          loadingOverlay.classList.add('hidden');
         }
-
-        // Create the lifelike procedural human clips
-        createProceduralClips();
-
-        // Start with the lifelike human WAIT animation
-        if (actions['wait']) {
-          currentAction = actions['wait'];
-          currentAction.play();
-        }
-
-        // Initialize Face Texture Shading (Blinking, Dark Circles & Wrinkles)
-        initFaceTextureMod(characterMaterial);
-
-        // Create and Attach 3D Red Frock / Gown to Skeleton!
-        createRedFrockSkinnedMesh(skinnedMesh);
-
-        scene.add(characterModel);
-        loadingOverlay.classList.add('hidden');
       },
       (xhr) => {
         const percent = Math.round((xhr.loaded / (xhr.total || 2015680)) * 100);
@@ -2221,19 +2420,26 @@
 
     // 7. Procedural Face Texture (Blinking, Dark Circles & Facial Wrinkles)
     function initFaceTextureMod(material) {
-      if (!material || !material.map || !material.map.image) return;
+      if (!material || !material.map) return;
 
-      baseImage = material.map.image;
+      const srcTex = material.map;
+      baseImage = srcTex.image;
+      if (!baseImage) return;
+
       texCanvas = document.createElement('canvas');
       texCanvas.width = baseImage.width || 2048;
       texCanvas.height = baseImage.height || 2048;
-      texCtx = texCanvas.getContext('2d');
+      texCtx = texCanvas.getContext('2d', { willReadFrequently: true });
+
+      // Copy original full texture to canvas once
+      texCtx.drawImage(baseImage, 0, 0, texCanvas.width, texCanvas.height);
 
       dynamicTexture = new THREE.CanvasTexture(texCanvas);
       dynamicTexture.colorSpace = THREE.SRGBColorSpace;
-      dynamicTexture.flipY = false;
+      dynamicTexture.flipY = srcTex.flipY !== undefined ? srcTex.flipY : false;
 
       material.map = dynamicTexture;
+      material.needsUpdate = true;
       updateFaceTexture();
     }
 
@@ -2243,8 +2449,12 @@
       const w = texCanvas.width;
       const h = texCanvas.height;
 
-      // Draw original clean basecolor
-      texCtx.drawImage(baseImage, 0, 0, w, h);
+      // Fast restore of facial region only (60fps silky smooth!)
+      const fx = Math.round(w * 0.36);
+      const fy = Math.round(h * 0.12);
+      const fw = Math.round(w * 0.28);
+      const fh = Math.round(h * 0.22);
+      texCtx.drawImage(baseImage, fx, fy, fw, fh, fx, fy, fw, fh);
 
       // Facial coordinates mapped from model UVs:
       const cx = w * 0.492;
@@ -2418,111 +2628,114 @@
 
       // --- D. Mouth & Lip Movement (Talking, Smiling, Frowning) ---
       const mOpen = state.speechViseme;
-      const mw = w * 0.024;
+      const mw = w * 0.036;
       texCtx.save();
 
       if (state.expression === 'happy') {
         // Happy Smile (Corners turned UP):
-        const smileCornerY = mouthY - 5;
-        const smileCenterY = mouthY + 10 + mOpen * 14;
+        const smileCornerY = mouthY - 10;
+        const smileCenterY = mouthY + 10 + mOpen * 18;
 
-        if (mOpen > 0.04) {
-          // Inner mouth cavity while speaking in a smile
-          texCtx.fillStyle = 'rgba(52, 14, 20, 0.95)';
+        if (mOpen > 0.02) {
+          // Inner mouth opening cavity
+          texCtx.fillStyle = 'rgba(32, 6, 12, 0.98)';
           texCtx.beginPath();
-          texCtx.moveTo(mouthX - mw, smileCornerY);
-          texCtx.quadraticCurveTo(mouthX, smileCenterY, mouthX + mw, smileCornerY);
-          texCtx.quadraticCurveTo(mouthX, mouthY - 2, mouthX - mw, smileCornerY);
+          texCtx.moveTo(mouthX - mw * 0.95, smileCornerY);
+          texCtx.quadraticCurveTo(mouthX, smileCenterY, mouthX + mw * 0.95, smileCornerY);
+          texCtx.quadraticCurveTo(mouthX, mouthY - 4, mouthX - mw * 0.95, smileCornerY);
           texCtx.fill();
 
           // Upper teeth row
-          texCtx.fillStyle = 'rgba(252, 248, 244, 0.95)';
-          texCtx.fillRect(mouthX - mw * 0.65, mouthY - 1, mw * 1.3, Math.min(6, mOpen * 7));
+          texCtx.fillStyle = 'rgba(255, 252, 248, 0.98)';
+          texCtx.fillRect(mouthX - mw * 0.65, mouthY - 3, mw * 1.3, Math.min(10, 4 + mOpen * 9));
         }
 
-        // Rosy Smiling Lips
-        texCtx.strokeStyle = 'rgba(195, 52, 68, 0.92)';
-        texCtx.lineWidth = 3.6;
-        texCtx.lineCap = 'round';
-        // Lower lip
+        // Upper lip (smiling with cupid's bow)
+        texCtx.fillStyle = 'rgba(215, 45, 68, 0.95)';
         texCtx.beginPath();
         texCtx.moveTo(mouthX - mw, smileCornerY);
-        texCtx.quadraticCurveTo(mouthX, smileCenterY + 2, mouthX + mw, smileCornerY);
-        texCtx.stroke();
-        // Upper lip cupid's bow
-        texCtx.beginPath();
-        texCtx.moveTo(mouthX - mw, smileCornerY);
-        texCtx.quadraticCurveTo(mouthX, mouthY - 4, mouthX + mw, smileCornerY);
-        texCtx.stroke();
+        texCtx.quadraticCurveTo(mouthX - mw * 0.5, mouthY - 14, mouthX, mouthY - 8);
+        texCtx.quadraticCurveTo(mouthX + mw * 0.5, mouthY - 14, mouthX + mw, smileCornerY);
+        texCtx.quadraticCurveTo(mouthX, mouthY - 2, mouthX - mw, smileCornerY);
+        texCtx.fill();
 
-        // Cheek smile creases / dimples
-        texCtx.strokeStyle = 'rgba(165, 52, 68, 0.45)';
-        texCtx.lineWidth = 2.0;
+        // Lower lip (plump smiling contour)
         texCtx.beginPath();
-        texCtx.arc(mouthX - mw - 3, smileCornerY + 1, 4, 1.2, 2.8);
-        texCtx.arc(mouthX + mw + 3, smileCornerY + 1, 4, 0.3, 1.9);
+        texCtx.moveTo(mouthX - mw, smileCornerY);
+        texCtx.quadraticCurveTo(mouthX, smileCenterY + 10, mouthX + mw, smileCornerY);
+        texCtx.quadraticCurveTo(mouthX, smileCenterY, mouthX - mw, smileCornerY);
+        texCtx.fill();
+
+        // Cheerful smile dimples
+        texCtx.strokeStyle = 'rgba(165, 42, 58, 0.70)';
+        texCtx.lineWidth = 3.5;
+        texCtx.lineCap = 'round';
+        texCtx.beginPath();
+        texCtx.arc(mouthX - mw - 4, smileCornerY + 1, 6, 1.2, 2.8);
+        texCtx.arc(mouthX + mw + 4, smileCornerY + 1, 6, 0.3, 1.9);
         texCtx.stroke();
 
       } else if (state.expression === 'sad' || state.expression === 'crying') {
         // Sad / Crying Frown (Corners pulled DOWN):
-        const frownCornerY = mouthY + 11;
-        const frownCenterY = mouthY - 2 + mOpen * 10;
+        const frownCornerY = mouthY + 16;
+        const frownCenterY = mouthY - 5 + mOpen * 12;
 
-        if (mOpen > 0.04) {
+        if (mOpen > 0.02) {
           // Inner mouth opening while frowning
-          texCtx.fillStyle = 'rgba(48, 14, 18, 0.95)';
+          texCtx.fillStyle = 'rgba(32, 6, 12, 0.98)';
           texCtx.beginPath();
-          texCtx.moveTo(mouthX - mw * 0.9, frownCornerY);
-          texCtx.quadraticCurveTo(mouthX, frownCenterY, mouthX + mw * 0.9, frownCornerY);
-          texCtx.quadraticCurveTo(mouthX, frownCenterY + 12 * mOpen, mouthX - mw * 0.9, frownCornerY);
+          texCtx.moveTo(mouthX - mw * 0.95, frownCornerY);
+          texCtx.quadraticCurveTo(mouthX, frownCenterY, mouthX + mw * 0.95, frownCornerY);
+          texCtx.quadraticCurveTo(mouthX, frownCenterY + 14 * mOpen, mouthX - mw * 0.95, frownCornerY);
           texCtx.fill();
 
           // Upper teeth
-          texCtx.fillStyle = 'rgba(240, 235, 230, 0.85)';
-          texCtx.fillRect(mouthX - mw * 0.5, frownCenterY - 1, mw * 1.0, 3 * mOpen);
+          texCtx.fillStyle = 'rgba(245, 240, 235, 0.90)';
+          texCtx.fillRect(mouthX - mw * 0.55, frownCenterY - 2, mw * 1.1, 4 * mOpen);
         }
 
-        // Sorrowful downturned lips
-        texCtx.strokeStyle = 'rgba(135, 55, 65, 0.90)';
-        texCtx.lineWidth = 3.6;
-        texCtx.lineCap = 'round';
+        // Melancholy downturned lips
+        texCtx.fillStyle = 'rgba(182, 52, 65, 0.95)';
         texCtx.beginPath();
-        texCtx.moveTo(mouthX - mw * 0.9, frownCornerY);
-        texCtx.quadraticCurveTo(mouthX, frownCenterY - 2, mouthX + mw * 0.9, frownCornerY);
-        texCtx.stroke();
+        texCtx.moveTo(mouthX - mw * 0.95, frownCornerY);
+        texCtx.quadraticCurveTo(mouthX, frownCenterY - 10, mouthX + mw * 0.95, frownCornerY);
+        texCtx.quadraticCurveTo(mouthX, frownCenterY, mouthX - mw * 0.95, frownCornerY);
+        texCtx.fill();
 
-        // Downturned corner creases
-        texCtx.strokeStyle = 'rgba(95, 40, 48, 0.55)';
-        texCtx.lineWidth = 2.2;
+        // Lower lip
         texCtx.beginPath();
-        texCtx.moveTo(mouthX - mw * 0.9, frownCornerY - 2);
-        texCtx.lineTo(mouthX - mw * 0.9 - 4, frownCornerY + 5);
-        texCtx.moveTo(mouthX + mw * 0.9, frownCornerY - 2);
-        texCtx.lineTo(mouthX + mw * 0.9 + 4, frownCornerY + 5);
-        texCtx.stroke();
+        texCtx.moveTo(mouthX - mw * 0.95, frownCornerY);
+        texCtx.quadraticCurveTo(mouthX, frownCenterY + 12, mouthX + mw * 0.95, frownCornerY);
+        texCtx.quadraticCurveTo(mouthX, frownCenterY + 2, mouthX - mw * 0.95, frownCornerY);
+        texCtx.fill();
 
-        // Trembling chin shadow
+        // Downturned sorrow lines
+        texCtx.strokeStyle = 'rgba(110, 38, 48, 0.80)';
+        texCtx.lineWidth = 3.5;
         texCtx.beginPath();
-        texCtx.arc(mouthX, mouthY + 18, 10, 0.2, Math.PI - 0.2);
+        texCtx.moveTo(mouthX - mw * 0.95, frownCornerY - 2);
+        texCtx.lineTo(mouthX - mw * 0.95 - 6, frownCornerY + 10);
+        texCtx.moveTo(mouthX + mw * 0.95, frownCornerY - 2);
+        texCtx.lineTo(mouthX + mw * 0.95 + 6, frownCornerY + 10);
         texCtx.stroke();
 
       } else {
         // Neutral talking mouth:
-        if (mOpen > 0.04) {
-          texCtx.fillStyle = 'rgba(45, 14, 18, 0.95)';
+        if (mOpen > 0.02) {
+          texCtx.fillStyle = 'rgba(32, 6, 12, 0.98)';
           texCtx.beginPath();
-          texCtx.ellipse(mouthX, mouthY + 2, mw * 0.9, h * (0.013 * mOpen), 0, 0, Math.PI * 2);
+          texCtx.ellipse(mouthX, mouthY + 2, mw * 0.85, 12 * mOpen, 0, 0, Math.PI * 2);
           texCtx.fill();
 
-          texCtx.fillStyle = 'rgba(245, 240, 236, 0.90)';
-          texCtx.fillRect(mouthX - mw * 0.55, mouthY - 1, mw * 1.1, 3.5 * mOpen);
+          texCtx.fillStyle = 'rgba(252, 248, 244, 0.95)';
+          texCtx.fillRect(mouthX - mw * 0.55, mouthY - 2, mw * 1.1, 4 * mOpen);
         }
 
-        texCtx.strokeStyle = 'rgba(165, 72, 82, 0.85)';
-        texCtx.lineWidth = 2.6;
+        texCtx.fillStyle = 'rgba(195, 58, 72, 0.90)';
         texCtx.beginPath();
-        texCtx.ellipse(mouthX, mouthY + 2, mw, Math.max(3, h * (0.014 * mOpen)), 0, 0, Math.PI * 2);
-        texCtx.stroke();
+        texCtx.ellipse(mouthX, mouthY - 3, mw * 0.85, 6, 0, 0, Math.PI * 2);
+        texCtx.ellipse(mouthX, mouthY + 5, mw * 0.90, 7, 0, 0, Math.PI * 2);
+        texCtx.fill();
       }
       texCtx.restore();
 
@@ -2533,7 +2746,7 @@
           texCtx.save();
           texCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
           texCtx.beginPath();
-          texCtx.arc(ex - 3, eyeY - 2, 2.5, 0, Math.PI * 2);
+          texCtx.arc(ex - 3, eyeY - 2, 4.0, 0, Math.PI * 2);
           texCtx.fill();
           texCtx.restore();
         });
@@ -2545,32 +2758,32 @@
         [eyeLeftX, eyeRightX].forEach((ex) => {
           texCtx.save();
           // Flesh-toned upper eyelid sliding down over the eye socket
-          texCtx.fillStyle = `rgba(182, 138, 122, ${Math.min(1.0, lidProgress * 1.5)})`;
+          texCtx.fillStyle = `rgba(186, 142, 126, ${Math.min(1.0, lidProgress * 1.6)})`;
           texCtx.beginPath();
-          texCtx.ellipse(ex, eyeY, w * 0.027, h * (0.020 * lidProgress), 0, 0, Math.PI * 2);
+          texCtx.ellipse(ex, eyeY, w * 0.034, h * (0.025 * lidProgress), 0, 0, Math.PI * 2);
           texCtx.fill();
 
           // Upper eyelid crease line
-          texCtx.strokeStyle = `rgba(110, 75, 68, ${Math.min(0.7, lidProgress * 0.9)})`;
-          texCtx.lineWidth = 1.8;
+          texCtx.strokeStyle = `rgba(105, 68, 62, ${Math.min(0.75, lidProgress * 0.9)})`;
+          texCtx.lineWidth = 3.0;
           texCtx.beginPath();
-          texCtx.arc(ex, eyeY - h * 0.010, w * 0.024, 0.2, Math.PI - 0.2);
+          texCtx.arc(ex, eyeY - h * 0.012, w * 0.028, 0.2, Math.PI - 0.2);
           texCtx.stroke();
 
           // Dark lush lash line along the bottom lid edge
-          texCtx.strokeStyle = `rgba(25, 14, 12, ${Math.min(1.0, lidProgress * 1.6)})`;
-          texCtx.lineWidth = 4.0;
+          texCtx.strokeStyle = `rgba(20, 10, 8, ${Math.min(1.0, lidProgress * 1.8)})`;
+          texCtx.lineWidth = 6.0;
           texCtx.lineCap = 'round';
           texCtx.beginPath();
-          texCtx.arc(ex, eyeY + (lidProgress * 4.0), w * 0.025, 0.10, Math.PI - 0.10);
+          texCtx.arc(ex, eyeY + (lidProgress * 8.0), w * 0.030, 0.10, Math.PI - 0.10);
           texCtx.stroke();
 
           // Micro lash fringe
-          texCtx.lineWidth = 2.0;
-          [-0.016, -0.008, 0, 0.008, 0.016].forEach((offset) => {
+          texCtx.lineWidth = 3.0;
+          [-0.018, -0.009, 0, 0.009, 0.018].forEach((offset) => {
             texCtx.beginPath();
-            texCtx.moveTo(ex + w * offset, eyeY + (lidProgress * 4.0));
-            texCtx.lineTo(ex + w * offset * 1.15, eyeY + (lidProgress * 4.0) + 3.5);
+            texCtx.moveTo(ex + w * offset, eyeY + (lidProgress * 8.0));
+            texCtx.lineTo(ex + w * offset * 1.15, eyeY + (lidProgress * 8.0) + 5.0);
             texCtx.stroke();
           });
 
@@ -2744,13 +2957,13 @@
 
     // 12. Camera & View Tools
     document.getElementById('btn-focus-face').addEventListener('click', () => {
-      controls.target.set(0, 1.58, 0);
-      camera.position.set(0, 1.62, 0.95);
+      controls.target.set(0, 1.50, 0);
+      camera.position.set(0, 1.51, 0.72);
     });
 
     document.getElementById('tab-reset-cam').addEventListener('click', () => {
-      controls.target.set(0, 1.1, 0);
-      camera.position.set(0, 1.25, 3.2);
+      controls.target.set(0, 1.05, 0);
+      camera.position.set(0, 1.20, 2.45);
     });
 
     const btnAutorotate = document.getElementById('btn-autorotate');
@@ -2848,6 +3061,9 @@
 
       // Render facial texture changes simultaneously (lips moving, blinking, tears, smile/frown)
       updateFaceTexture();
+
+      // Physical 3D Facial Deformations (Mouth talking, smile curls, frown downturns, eye blinking)
+      updateFacialDeformations();
 
       controls.update();
       renderer.render(scene, camera);
