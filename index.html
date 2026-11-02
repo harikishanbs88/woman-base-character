@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Woman Base Mesh: Free Rigged 3D Model (CC0, GLB, FBX) | Grab3D</title>
-  <meta name="description" content="Free Woman Base Mesh 3D model, rigged with walk and run animations. Neutral woman base mesh. CC0 public domain, download as GLB, FBX, BLEND, USDZ and OBJ.">
+  <title>Woman Base Mesh: Interactive 3D Character (Rigged, Facial & Actions) | Grab3D</title>
+  <meta name="description" content="Free Woman Base Mesh 3D model with eye blinking, talking mouth expressions, custom actions (Hello, Bye, Checking, Sitting, Dancing), dark circles & facial wrinkles controls. CC0 public domain.">
   <meta name="theme-color" content="#0a0c11">
   <meta name="color-scheme" content="dark">
 
@@ -13,16 +13,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Google Model Viewer for robust 3D WebGL rendering & animations -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <!-- Import Maps for Three.js & Loaders -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 
   <style>
     :root {
       --bg-canvas: #090b0e;
       --bg-surface: #101318;
       --bg-elevated: #161b22;
-      --bg-card: rgba(22, 27, 34, 0.75);
-      --bg-glass: rgba(18, 22, 29, 0.65);
+      --bg-card: rgba(22, 27, 34, 0.85);
+      --bg-glass: rgba(18, 22, 29, 0.75);
       --border-subtle: rgba(255, 255, 255, 0.08);
       --border-strong: rgba(255, 255, 255, 0.16);
       --border-highlight: rgba(179, 220, 52, 0.4);
@@ -81,7 +88,7 @@
     }
 
     .container {
-      max-width: 1360px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 0 24px;
       position: relative;
@@ -190,7 +197,7 @@
     /* Main Page Hero Grid */
     .hero-grid {
       display: grid;
-      grid-template-columns: 1.25fr 1fr;
+      grid-template-columns: 1.35fr 1fr;
       gap: 36px;
       margin-bottom: 60px;
     }
@@ -276,25 +283,31 @@
       box-shadow: var(--shadow-sm);
     }
 
-    /* 3D Viewer Container */
+    /* 3D Canvas Box */
     .viewer-box {
       width: 100%;
-      height: 600px;
+      height: 640px;
       background: radial-gradient(circle at center, #1b2029 0%, #0d1016 100%);
       position: relative;
+      overflow: hidden;
     }
 
     @media (max-width: 768px) {
       .viewer-box {
-        height: 440px;
+        height: 480px;
       }
     }
 
-    model-viewer {
+    #three-canvas {
       width: 100%;
       height: 100%;
-      --poster-color: transparent;
+      display: block;
       outline: none;
+      cursor: grab;
+    }
+
+    #three-canvas:active {
+      cursor: grabbing;
     }
 
     /* Custom Loading Spinner */
@@ -307,7 +320,7 @@
       justify-content: center;
       background: rgba(13, 16, 22, 0.85);
       backdrop-filter: blur(8px);
-      z-index: 10;
+      z-index: 20;
       transition: opacity 0.4s ease;
       pointer-events: none;
     }
@@ -346,7 +359,7 @@
       justify-content: space-between;
       align-items: center;
       pointer-events: none;
-      z-index: 5;
+      z-index: 10;
     }
 
     .variant-selector-pills {
@@ -414,44 +427,78 @@
     .tool-btn.active {
       color: var(--accent);
       border-color: var(--accent);
+      background: rgba(180, 220, 52, 0.12);
     }
 
-    /* Animation Controls Bar */
-    .stage-anim-bar {
-      background: var(--bg-elevated);
-      border-top: 1px solid var(--border-subtle);
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .anim-buttons {
+    /* Live Status Badge on Canvas */
+    .live-status-pill {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      background: rgba(16, 20, 26, 0.85);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
       display: flex;
       align-items: center;
       gap: 8px;
+      pointer-events: none;
+      z-index: 10;
     }
 
-    .anim-tag-label {
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Action Control Dashboard */
+    .stage-anim-bar {
+      background: var(--bg-elevated);
+      border-top: 1px solid var(--border-subtle);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .action-tag-label {
       font-size: 0.75rem;
       font-family: var(--font-mono);
       text-transform: uppercase;
       color: var(--text-subtle);
-      margin-right: 6px;
+      min-width: 75px;
     }
 
     .anim-btn {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
-      padding: 6px 14px;
+      padding: 7px 13px;
       border-radius: var(--radius-sm);
       font-size: 0.82rem;
       font-weight: 500;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
       transition: all var(--transition-fast);
@@ -463,26 +510,119 @@
     }
 
     .anim-btn.active {
-      background: rgba(180, 220, 52, 0.15);
+      background: rgba(180, 220, 52, 0.18);
       border-color: var(--accent);
       color: var(--accent);
+      box-shadow: 0 0 12px rgba(180, 220, 52, 0.15);
     }
 
-    .env-lighting-group {
+    /* Special Action Buttons */
+    .btn-action-hello { border-left: 3px solid #ffbd2e; }
+    .btn-action-bye { border-left: 3px solid #ff758c; }
+    .btn-action-check { border-left: 3px solid #4dabf7; }
+    .btn-action-sit { border-left: 3px solid #b197fc; }
+    .btn-action-dance { border-left: 3px solid #20c997; }
+
+    /* Facial & Speech Controller Panel */
+    .face-controller-panel {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-top: 4px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .face-controller-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ctrl-col-title {
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
-    .env-select {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 6px 10px;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
+    .slider-control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slider-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .slider-item input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
       outline: none;
+      accent-color: var(--accent);
       cursor: pointer;
+    }
+
+    /* Talking & Voice Input */
+    .speech-input-box {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .speech-text-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      color: #fff;
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .speech-text-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-speak {
+      background: var(--accent);
+      color: var(--accent-ink);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .btn-speak:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
     }
 
     /* Details & Download Column */
@@ -494,7 +634,7 @@
 
     .title-block h1 {
       font-family: var(--font-heading);
-      font-size: 2.4rem;
+      font-size: 2.3rem;
       font-weight: 700;
       line-height: 1.15;
       letter-spacing: -0.03em;
@@ -537,10 +677,10 @@
       color: #4dabf7;
     }
 
-    .badge-gray {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: var(--border-subtle);
-      color: var(--text-muted);
+    .badge-orange {
+      background: rgba(255, 146, 43, 0.12);
+      border-color: rgba(255, 146, 43, 0.3);
+      color: #ff922b;
     }
 
     /* Download Card */
@@ -578,7 +718,6 @@
       border: 1px solid rgba(180, 220, 52, 0.25);
     }
 
-    /* Format Selection Matrix */
     .selector-label {
       font-size: 0.8rem;
       font-weight: 600;
@@ -586,44 +725,6 @@
       letter-spacing: 0.05em;
       color: var(--text-subtle);
       margin-bottom: 8px;
-    }
-
-    .segmented-control {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      background: rgba(0, 0, 0, 0.35);
-      padding: 4px;
-      border-radius: var(--radius-sm);
-      margin-bottom: 18px;
-      gap: 4px;
-    }
-
-    .seg-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      transition: all var(--transition-fast);
-    }
-
-    .seg-btn small {
-      font-size: 0.7rem;
-      font-weight: 400;
-      opacity: 0.7;
-    }
-
-    .seg-btn.active {
-      background: var(--bg-elevated);
-      color: var(--accent);
-      border: 1px solid rgba(180, 220, 52, 0.3);
     }
 
     .formats-grid {
@@ -682,7 +783,6 @@
       line-height: 1.3;
     }
 
-    /* Primary Download Button */
     .btn-download-primary {
       width: 100%;
       background: var(--accent);
@@ -708,10 +808,6 @@
       box-shadow: 0 8px 26px rgba(180, 220, 52, 0.35);
     }
 
-    .btn-download-primary:active {
-      transform: translateY(0);
-    }
-
     .license-notice {
       display: flex;
       align-items: center;
@@ -727,7 +823,6 @@
       text-decoration: none;
     }
 
-    /* Direct Mirrors Drawer */
     .mirrors-group {
       margin-top: 20px;
       padding-top: 18px;
@@ -859,7 +954,7 @@
       border-radius: 2px;
     }
 
-    /* Engine Integration Accordion */
+    /* Engine Integration Cards */
     .engine-cards {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -895,32 +990,6 @@
       font-size: 0.86rem;
       color: var(--text-muted);
       line-height: 1.5;
-    }
-
-    /* Tags & Badges */
-    .tags-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
-      list-style: none;
-    }
-
-    .tag-chip {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      text-decoration: none;
-      transition: all var(--transition-fast);
-    }
-
-    .tag-chip:hover {
-      background: rgba(180, 220, 52, 0.1);
-      border-color: var(--accent);
-      color: var(--accent);
     }
 
     /* Footer */
@@ -995,9 +1064,9 @@
           </div>
 
           <div class="stage-tabs">
-            <button type="button" class="stage-tab-btn active" id="tab-3d-view">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-              Interactive 3D
+            <button type="button" class="stage-tab-btn active" id="tab-interactive">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              Live Engine
             </button>
             <button type="button" class="stage-tab-btn" id="tab-reset-cam">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -1010,29 +1079,31 @@
           <!-- Loading Indicator -->
           <div class="viewer-loading-overlay" id="loading-overlay">
             <div class="spinner"></div>
-            <div class="loading-text" id="loading-status">Loading 3D Model...</div>
+            <div class="loading-text" id="loading-status">Loading Rigged 3D Character & Shaders...</div>
           </div>
 
           <!-- Canvas Top Pill Controls -->
           <div class="canvas-overlay-top">
-            <!-- Model Variant Selector -->
             <div class="variant-selector-pills">
-              <button type="button" class="pill-btn active" data-variant="rigged">
+              <button type="button" class="pill-btn active" id="pill-rigged">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
-                Rigged (Animated)
+                Rigged Character
               </button>
-              <button type="button" class="pill-btn" data-variant="full">
-                Full 4K Static
-              </button>
-              <button type="button" class="pill-btn" data-variant="light">
-                Lightweight
+              <button type="button" class="pill-btn" id="pill-static">
+                Static Mesh
               </button>
             </div>
 
             <!-- View Tools -->
             <div class="viewer-action-btns">
+              <button type="button" class="tool-btn" id="btn-focus-face" title="Focus Camera on Face">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg>
+              </button>
               <button type="button" class="tool-btn" id="btn-autorotate" title="Toggle Auto-Rotate">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              </button>
+              <button type="button" class="tool-btn" id="btn-wireframe" title="Toggle Wireframe">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               </button>
               <button type="button" class="tool-btn" id="btn-fullscreen" title="Fullscreen">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
@@ -1040,54 +1111,104 @@
             </div>
           </div>
 
-          <!-- Google Model Viewer Component -->
-          <model-viewer
-            id="character-viewer"
-            src="rigged.glb"
-            alt="Neutral woman base mesh in A-pose with taupe sports top and charcoal shorts"
-            camera-controls
-            touch-action="pan-y"
-            shadow-intensity="1.2"
-            shadow-softness="0.8"
-            exposure="1.0"
-            ar
-            ar-modes="webxr scene-viewer quick-look"
-            camera-orbit="0deg 78deg 3.4m"
-            min-camera-orbit="auto auto 1.2m"
-            max-camera-orbit="auto auto 6m"
-            animation-name="walk"
-            autoplay
-          >
-          </model-viewer>
+          <!-- Real-Time WebGL Three.js Canvas -->
+          <canvas id="three-canvas"></canvas>
+
+          <!-- Live Status Tag -->
+          <div class="live-status-pill">
+            <span class="pulse-dot"></span>
+            <span id="current-action-label">Action: Hello 👋</span>
+          </div>
         </div>
 
-        <!-- Animation Controls Bar -->
+        <!-- Animation Controls Dashboard -->
         <div class="stage-anim-bar">
-          <div class="anim-buttons" id="anim-controls-group">
-            <span class="anim-tag-label">Animation:</span>
-            <button type="button" class="anim-btn active" data-anim="walk">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Walk Cycle
+          <!-- Row 1: Character Action Animations -->
+          <div class="action-row">
+            <span class="action-tag-label">Actions:</span>
+            <button type="button" class="anim-btn active btn-action-hello" data-action="hello">
+              👋 Hello
             </button>
-            <button type="button" class="anim-btn" data-anim="run">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Run Cycle
+            <button type="button" class="anim-btn btn-action-bye" data-action="bye">
+              🙋‍♀️ Bye
             </button>
-            <button type="button" class="anim-btn" data-anim="none">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"/></svg>
-              Static (A-Pose)
+            <button type="button" class="anim-btn btn-action-check" data-action="checking">
+              ⌚ Checking
+            </button>
+            <button type="button" class="anim-btn btn-action-sit" data-action="sitting">
+              🪑 Sitting
+            </button>
+            <button type="button" class="anim-btn btn-action-dance" data-action="dancing">
+              💃 Dancing
+            </button>
+            <button type="button" class="anim-btn" data-action="walk">
+              🚶 Walk
+            </button>
+            <button type="button" class="anim-btn" data-action="run">
+              🏃 Run
+            </button>
+            <button type="button" class="anim-btn" data-action="idle">
+              🧍 A-Pose
             </button>
           </div>
 
-          <!-- Environment Lighting Selection -->
-          <div class="env-lighting-group">
-            <span class="anim-tag-label">Lighting:</span>
-            <select class="env-select" id="env-select" aria-label="Environment Lighting">
-              <option value="neutral">Studio Neutral</option>
-              <option value="warm">Warm Sunlight</option>
-              <option value="cool">Cool Daylight</option>
-              <option value="dark">High Contrast Dark</option>
-            </select>
+          <!-- Row 2: Facial Features, Blinking & Voice Speech -->
+          <div class="face-controller-panel">
+            <!-- Left: Eye Blinking & Talking Mouth -->
+            <div>
+              <div class="ctrl-col-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg>
+                Facial Animations
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+                <button type="button" class="anim-btn active" id="btn-toggle-blink">
+                  👁️ Auto Blink (Active)
+                </button>
+                <button type="button" class="anim-btn" id="btn-manual-blink">
+                  Blink Once
+                </button>
+              </div>
+
+              <!-- Talking & Voice Speech Section -->
+              <div style="margin-top: 10px;">
+                <div class="slider-label-row">
+                  <span>Talking Expression & Voice:</span>
+                  <span id="speech-status-text" style="color: var(--accent);">Ready</span>
+                </div>
+                <div class="speech-input-box">
+                  <input type="text" id="speech-input" class="speech-text-input" value="Hello! Welcome to the 3D studio. I am fully rigged and ready." placeholder="Type phrase to speak...">
+                  <button type="button" id="btn-speak-voice" class="btn-speak">
+                    🗣️ Speak
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Dark Circles & Facial Wrinkles Precision Sliders -->
+            <div class="slider-control-group">
+              <div class="ctrl-col-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Face Texture Details
+              </div>
+
+              <!-- Dark Circles Slider -->
+              <div class="slider-item">
+                <div class="slider-label-row">
+                  <span>Dark Circles near eyes:</span>
+                  <span id="val-dark-circles" style="font-family: var(--font-mono); color: var(--accent);">65%</span>
+                </div>
+                <input type="range" id="slider-dark-circles" min="0" max="100" value="65">
+              </div>
+
+              <!-- Facial Wrinkles Slider -->
+              <div class="slider-item">
+                <div class="slider-label-row">
+                  <span>Facial Wrinkles (Forehead & Smile):</span>
+                  <span id="val-wrinkles" style="font-family: var(--font-mono); color: var(--accent);">50%</span>
+                </div>
+                <input type="range" id="slider-wrinkles" min="0" max="100" value="50">
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1106,15 +1227,18 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></svg>
               Rigged & Animated
             </span>
+            <span class="badge badge-orange">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg>
+              Facial Shaders Active
+            </span>
             <span class="badge badge-blue">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               CC0 Public Domain
             </span>
-            <span class="badge badge-gray">305k ▲ Polygons</span>
           </div>
 
           <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 8px;">
-            A neutral, anatomically accurate female base character standing 1.68m tall in a relaxed A-pose. Includes taupe sports top, charcoal shorts, bare feet, clean topology, PBR textures, and a full humanoid skeleton with walk and run cycles.
+            A neutral, anatomically accurate female character standing 1.68m tall. Now enhanced with dynamic eye blinking, synchronized speech talking expressions, procedural actions (Hello, Bye, Checking, Sitting, Dancing), dark circles, and facial micro-wrinkles.
           </p>
         </div>
 
@@ -1128,75 +1252,38 @@
             <span class="dl-price-tag">$0 · Free CC0</span>
           </div>
 
-          <!-- Version Segment -->
-          <div class="selector-label">1. Choose Version</div>
-          <div class="segmented-control" id="version-selector">
-            <button type="button" class="seg-btn active" data-v="rigged">
-              <span>Rigged Character</span>
-              <small>Skeleton + Walk & Run</small>
-            </button>
-            <button type="button" class="seg-btn" data-v="static">
-              <span>Static Mesh</span>
-              <small>Standard A-Pose</small>
-            </button>
-          </div>
-
-          <!-- Quality Segment (for static) -->
-          <div id="quality-selector-wrap" style="display: none;">
-            <div class="selector-label">Quality Level</div>
-            <div class="segmented-control">
-              <button type="button" class="seg-btn active" data-q="full">
-                <span>Full Quality</span>
-                <small>306k ▲ · 4K PBR</small>
-              </button>
-              <button type="button" class="seg-btn" data-q="light">
-                <span>Light</span>
-                <small>153k ▲ · 1K Maps</small>
-              </button>
-            </div>
-          </div>
-
-          <!-- Format Matrix -->
-          <div class="selector-label">2. Select Format</div>
-          <div class="formats-grid" id="formats-matrix">
-            <div class="format-tile active" data-fmt="glb">
+          <div class="selector-label">Select Package Format</div>
+          <div class="formats-grid">
+            <div class="format-tile active" data-dl-file="rigged.glb" data-dl-name="woman-base-character-rigged.glb" data-dl-label="Download Rigged GLB (12 MB)">
               <div class="fmt-top">
-                <span class="fmt-name">GLB</span>
-                <span class="fmt-size" id="size-glb">12 MB</span>
+                <span class="fmt-name">Rigged GLB</span>
+                <span class="fmt-size">12 MB</span>
               </div>
-              <span class="fmt-desc">glTF Binary · Unity, Godot, Blender, Web</span>
+              <span class="fmt-desc">Skeleton + Walk & Run takes (Web & Engines)</span>
             </div>
 
-            <div class="format-tile" data-fmt="fbx">
+            <div class="format-tile" data-dl-file="https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.fbx" data-dl-name="woman-base-character-rigged.fbx" data-dl-label="Download Rigged FBX (18 MB)">
               <div class="fmt-top">
-                <span class="fmt-name">FBX</span>
-                <span class="fmt-size" id="size-fbx">18 MB</span>
+                <span class="fmt-name">Rigged FBX</span>
+                <span class="fmt-size">18 MB</span>
               </div>
-              <span class="fmt-desc">Unreal Engine, Unity, Maya, 3ds Max</span>
+              <span class="fmt-desc">Unreal Engine, Unity, Maya Skeletal Mesh</span>
             </div>
 
-            <div class="format-tile" data-fmt="blend">
+            <div class="format-tile" data-dl-file="woman-base-character.glb" data-dl-name="woman-base-character.glb" data-dl-label="Download Static GLB (13 MB)">
+              <div class="fmt-top">
+                <span class="fmt-name">Static 4K GLB</span>
+                <span class="fmt-size">13 MB</span>
+              </div>
+              <span class="fmt-desc">305,702 ▲ High detail static character</span>
+            </div>
+
+            <div class="format-tile" data-dl-file="https://grab3d.com/dl/woman-base-character/woman-base-character.blend" data-dl-name="woman-base-character.blend" data-dl-label="Download Blender Source (15 MB)">
               <div class="fmt-top">
                 <span class="fmt-name">BLEND</span>
-                <span class="fmt-size" id="size-blend">13 MB</span>
+                <span class="fmt-size">15 MB</span>
               </div>
-              <span class="fmt-desc">Native Blender 3.x / 4.x project file</span>
-            </div>
-
-            <div class="format-tile" data-fmt="usdz" id="tile-usdz" style="display: none;">
-              <div class="fmt-top">
-                <span class="fmt-name">USDZ</span>
-                <span class="fmt-size" id="size-usdz">19 MB</span>
-              </div>
-              <span class="fmt-desc">Apple AR Quick Look, Reality Composer</span>
-            </div>
-
-            <div class="format-tile" data-fmt="obj-zip" id="tile-obj" style="display: none;">
-              <div class="fmt-top">
-                <span class="fmt-name">OBJ (ZIP)</span>
-                <span class="fmt-size" id="size-obj">10 MB</span>
-              </div>
-              <span class="fmt-desc">OBJ + MTL + Textures in one ZIP archive</span>
+              <span class="fmt-desc">Native Blender 3.x / 4.x scene file</span>
             </div>
           </div>
 
@@ -1204,7 +1291,7 @@
           <a
             id="main-download-btn"
             class="btn-download-primary"
-            href="https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.glb"
+            href="rigged.glb"
             download="woman-base-character-rigged.glb"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1220,15 +1307,15 @@
           <div class="mirrors-group">
             <div class="mirrors-title">Direct Grab3D Source Files (Unmanipulated)</div>
             <div class="links-compact">
-              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character.glb" download>Static GLB (13MB)</a>
-              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.glb" download>Rigged GLB (12MB)</a>
-              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character.fbx" download>Static FBX (20MB)</a>
+              <a class="mirror-pill" href="rigged.glb" download>Local Rigged GLB (12MB)</a>
+              <a class="mirror-pill" href="woman-base-character.glb" download>Local Static GLB (13MB)</a>
+              <a class="mirror-pill" href="preview.glb" download>Light Preview (1.3MB)</a>
               <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.fbx" download>Rigged FBX (18MB)</a>
               <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character.blend" download>Blend (15MB)</a>
               <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character.usdz" download>USDZ (19MB)</a>
               <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/woman-base-character-obj.zip" download>OBJ.zip (10MB)</a>
-              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/LICENSE.txt" target="_blank">LICENSE.txt</a>
-              <a class="mirror-pill" href="https://grab3d.com/dl/woman-base-character/manifest.json" target="_blank">manifest.json</a>
+              <a class="mirror-pill" href="LICENSE.txt" target="_blank">LICENSE.txt</a>
+              <a class="mirror-pill" href="manifest.json" target="_blank">manifest.json</a>
             </div>
           </div>
         </div>
@@ -1270,7 +1357,7 @@
         <div class="spec-item">
           <span class="spec-key">Rig & Animations</span>
           <span class="spec-value">Humanoid Skeleton</span>
-          <span class="spec-sub">Walk cycle & Run cycle baked takes</span>
+          <span class="spec-sub">Walk, Run, Hello, Bye, Checking, Sitting, Dancing</span>
         </div>
 
         <div class="spec-item">
@@ -1284,21 +1371,16 @@
       <div class="size-compare-box">
         <div class="size-svg-wrap">
           <svg viewBox="0 0 228 234" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Height scale comparison">
-            <!-- ground -->
             <line x1="0" x2="228" y1="208.8" y2="208.8" stroke="#333a44" stroke-width="1.5"></line>
-            <!-- person, 180 cm -->
             <g transform="translate(10.8 28.8)" fill="#444d5a">
               <circle cx="25" cy="12" r="11"></circle>
               <path d="M14 26 Q25 22 36 26 L41 28 Q45 30 45 36 L46 92 Q46 96 43 96 Q40 96 40 92 L39 42 L37 42 L37 100 L35 176 Q35 180 31 180 Q27 180 27 176 L26 108 L24 108 L23 176 Q23 180 19 180 Q15 180 15 176 L13 100 L13 42 L11 42 L10 92 Q10 96 7 96 Q4 96 4 92 L5 36 Q5 30 9 28 Z"></path>
             </g>
             <text x="35.8" y="21.4" font-size="14" fill="#9aa5b5" text-anchor="middle" font-family="'JetBrains Mono', monospace">1.80 m</text>
-            <!-- model bounding box -->
             <rect x="90.8" y="40.8" width="90.3" height="168" fill="rgba(180, 220, 52, 0.12)" stroke="#b4dc34" stroke-width="1.5" stroke-dasharray="4 2"></rect>
-            <!-- height marker -->
             <line x1="190.5" x2="190.5" y1="40.8" y2="208.8" stroke="#9aa5b5" stroke-width="1"></line>
             <line x1="187" x2="194" y1="40.8" y2="40.8" stroke="#9aa5b5" stroke-width="1"></line>
             <text x="206" y="130" font-size="14" fill="#b4dc34" font-weight="bold" font-family="'JetBrains Mono', monospace">1.68 m</text>
-            <!-- width marker -->
             <text x="136" y="228" font-size="13" fill="#9aa5b5" text-anchor="middle" font-family="'JetBrains Mono', monospace">0.90 m</text>
           </svg>
         </div>
@@ -1336,7 +1418,7 @@
             <span class="engine-name">Unreal Engine 5</span>
             <span class="engine-fmt">FBX</span>
           </div>
-          <p>Import the FBX file. Unreal converts meters to centimeters automatically (1.68 m = 168 cm). For the rigged edition, import as Skeletal Mesh; walk and run takes import cleanly into animation sequences.</p>
+          <p>Import the FBX file. Unreal converts meters to centimeters automatically (1.68 m = 168 cm). For the rigged edition, import as Skeletal Mesh; animation takes import cleanly into animation sequences.</p>
         </div>
 
         <div class="engine-card">
@@ -1344,7 +1426,7 @@
             <span class="engine-name">Godot 4</span>
             <span class="engine-fmt">GLB · FBX</span>
           </div>
-          <p>Drag the GLB directly into the FileSystem dock. Godot 4 imports it natively with materials. For the rigged variant, the skeleton and AnimationPlayer with Walk and Run tracks are set up out of the box.</p>
+          <p>Drag the GLB directly into the FileSystem dock. Godot 4 imports it natively with materials. For the rigged variant, the skeleton and AnimationPlayer are set up out of the box.</p>
         </div>
 
         <div class="engine-card">
@@ -1356,22 +1438,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Tags -->
-    <section class="section-block">
-      <h3 style="font-size: 1.1rem; margin-bottom: 12px;">Tags & Categories</h3>
-      <ul class="tags-list">
-        <li><span class="tag-chip">#woman base mesh</span></li>
-        <li><span class="tag-chip">#female base mesh</span></li>
-        <li><span class="tag-chip">#base character</span></li>
-        <li><span class="tag-chip">#base mesh</span></li>
-        <li><span class="tag-chip">#rigged</span></li>
-        <li><span class="tag-chip">#a-pose</span></li>
-        <li><span class="tag-chip">#realistic</span></li>
-        <li><span class="tag-chip">#pbr</span></li>
-        <li><span class="tag-chip">#game-ready</span></li>
-      </ul>
-    </section>
   </main>
 
   <footer class="site-footer">
@@ -1381,297 +1447,749 @@
     </div>
   </footer>
 
-  <script>
-    // Asset Map - Exact, unmanipulated file paths & remote Grab3D links
-    const assetMatrix = {
-      rigged: {
-        glb: {
-          file: 'rigged.glb',
-          remoteUrl: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.glb',
-          size: '12 MB',
-          label: 'Download Rigged GLB (12 MB)'
-        },
-        fbx: {
-          file: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.fbx',
-          remoteUrl: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.fbx',
-          size: '18 MB',
-          label: 'Download Rigged FBX (18 MB)'
-        },
-        blend: {
-          file: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.blend',
-          remoteUrl: 'https://grab3d.com/dl/woman-base-character-rigged/woman-base-character-rigged.blend',
-          size: '13 MB',
-          label: 'Download Rigged BLEND (13 MB)'
-        }
-      },
-      static: {
-        full: {
-          glb: {
-            file: 'woman-base-character.glb',
-            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character.glb',
-            size: '13 MB',
-            label: 'Download Static GLB (13 MB)'
-          },
-          fbx: {
-            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character.fbx',
-            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character.fbx',
-            size: '20 MB',
-            label: 'Download Static FBX (20 MB)'
-          },
-          blend: {
-            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character.blend',
-            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character.blend',
-            size: '15 MB',
-            label: 'Download Static BLEND (15 MB)'
-          },
-          usdz: {
-            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character.usdz',
-            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character.usdz',
-            size: '19 MB',
-            label: 'Download Static USDZ (19 MB)'
-          },
-          'obj-zip': {
-            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character-obj.zip',
-            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character-obj.zip',
-            size: '10.0 MB',
-            label: 'Download OBJ ZIP (10 MB)'
-          }
-        },
-        light: {
-          glb: {
-            file: 'preview.glb',
-            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character-light.glb',
-            size: '4.6 MB',
-            label: 'Download Light GLB (4.6 MB)'
-          },
-          fbx: {
-            file: 'https://grab3d.com/dl/woman-base-character/woman-base-character-light.fbx',
-            remoteUrl: 'https://grab3d.com/dl/woman-base-character/woman-base-character-light.fbx',
-            size: '9.1 MB',
-            label: 'Download Light FBX (9.1 MB)'
-          }
-        }
-      }
+  <!-- Real-Time Interactive Three.js Engine Script -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+    // Application State
+    const state = {
+      action: 'hello', // hello, bye, checking, sitting, dancing, walk, run, idle
+      autoBlink: true,
+      blinkValue: 0,
+      isBlinking: false,
+      lastBlinkTime: 0,
+      nextBlinkInterval: 3.5,
+      isSpeaking: false,
+      speechViseme: 0,
+      darkCirclesIntensity: 0.65,
+      wrinklesIntensity: 0.50,
+      autoRotate: false,
+      wireframe: false,
+      variant: 'rigged'
     };
 
-    // State
-    let currentVersion = 'rigged';
-    let currentQuality = 'full';
-    let currentFmt = 'glb';
-    let isAutoRotating = false;
-
-    const viewer = document.getElementById('character-viewer');
+    // DOM Elements
+    const canvas = document.getElementById('three-canvas');
+    const container = canvas.parentElement;
     const loadingOverlay = document.getElementById('loading-overlay');
     const loadingStatus = document.getElementById('loading-status');
+    const currentActionLabel = document.getElementById('current-action-label');
     const activeFilename = document.getElementById('active-filename');
-    const animControlsGroup = document.getElementById('anim-controls-group');
-    const downloadBtn = document.getElementById('main-download-btn');
-    const downloadBtnText = document.getElementById('btn-download-text');
 
-    // Model Loading Handlers
-    viewer.addEventListener('load', () => {
-      loadingOverlay.classList.add('hidden');
-      if (currentVersion === 'rigged') {
-        viewer.animationName = 'walk';
-        viewer.play();
+    // 1. Scene, Camera, Renderer Setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e1116);
+    scene.fog = new THREE.FogExp2(0x0e1116, 0.12);
+
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 1.25, 3.2);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 1.1, 0);
+    controls.maxPolarAngle = Math.PI / 2 + 0.05;
+    controls.minDistance = 0.6;
+    controls.maxDistance = 6.0;
+
+    // 2. Lighting Rig
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x222630, 1.1);
+    hemiLight.position.set(0, 20, 0);
+    scene.add(hemiLight);
+
+    const mainLight = new THREE.DirectionalLight(0xfffaed, 2.0);
+    mainLight.position.set(2.5, 4, 3);
+    mainLight.castShadow = true;
+    mainLight.shadow.mapSize.width = 2048;
+    mainLight.shadow.mapSize.height = 2048;
+    mainLight.shadow.bias = -0.0001;
+    scene.add(mainLight);
+
+    const fillLight = new THREE.DirectionalLight(0x7094b8, 1.2);
+    fillLight.position.set(-3, 2, -1.5);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xb4dc34, 1.5);
+    rimLight.position.set(0, 3, -3);
+    scene.add(rimLight);
+
+    // Ground Shadow Catcher & Grid
+    const shadowPlaneGeo = new THREE.PlaneGeometry(12, 12);
+    const shadowPlaneMat = new THREE.ShadowMaterial({ opacity: 0.35 });
+    const shadowPlane = new THREE.Mesh(shadowPlaneGeo, shadowPlaneMat);
+    shadowPlane.rotation.x = -Math.PI / 2;
+    shadowPlane.position.y = 0;
+    shadowPlane.receiveShadow = true;
+    scene.add(shadowPlane);
+
+    const grid = new THREE.GridHelper(10, 20, 0xb4dc34, 0x222933);
+    grid.position.y = 0.001;
+    grid.material.opacity = 0.25;
+    grid.material.transparent = true;
+    scene.add(grid);
+
+    // 3. GLTF & Draco Loader
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
+
+    let mixer = null;
+    let bakedWalkAction = null;
+    let bakedRunAction = null;
+    let characterModel = null;
+    let skinnedMesh = null;
+    let boneMap = {};
+    let originalBoneRotations = {};
+    let characterMaterial = null;
+
+    // Face Texture Modifier Canvas
+    let texCanvas = null;
+    let texCtx = null;
+    let dynamicTexture = null;
+    let baseImage = null;
+
+    // Load Character Model
+    gltfLoader.load(
+      'rigged.glb',
+      (gltf) => {
+        characterModel = gltf.scene;
+        characterModel.traverse((node) => {
+          if (node.isMesh || node.isSkinnedMesh) {
+            node.castShadow = true;
+            node.receiveShadow = true;
+            skinnedMesh = node;
+            characterMaterial = node.material;
+          }
+          if (node.isBone) {
+            boneMap[node.name] = node;
+            originalBoneRotations[node.name] = node.quaternion.clone();
+          }
+        });
+
+        // Set up Animation Mixer for baked takes
+        mixer = new THREE.AnimationMixer(characterModel);
+        if (gltf.animations) {
+          gltf.animations.forEach((clip) => {
+            if (clip.name === 'walk') bakedWalkAction = mixer.clipAction(clip);
+            if (clip.name === 'run') bakedRunAction = mixer.clipAction(clip);
+          });
+        }
+
+        // Initialize Face Texture Shading (Dark circles, Wrinkles, Eye Blink)
+        initFaceTextureMod(characterMaterial);
+
+        scene.add(characterModel);
+        loadingOverlay.classList.add('hidden');
+      },
+      (xhr) => {
+        const percent = Math.round((xhr.loaded / (xhr.total || 2015680)) * 100);
+        loadingStatus.textContent = `Loading 3D Character... ${percent}%`;
+      },
+      (err) => {
+        console.error('Error loading rigged.glb:', err);
+        loadingStatus.textContent = 'Previewing Character...';
+        setTimeout(() => loadingOverlay.classList.add('hidden'), 500);
       }
-    });
+    );
 
-    viewer.addEventListener('error', (err) => {
-      console.warn('Model viewer load event error or fallback:', err);
-      loadingStatus.textContent = 'Previewing Model...';
-      setTimeout(() => loadingOverlay.classList.add('hidden'), 500);
-    });
+    // 4. Procedural Dynamic Face Texture (Blinking, Dark Circles & Facial Wrinkles)
+    function initFaceTextureMod(material) {
+      if (!material || !material.map || !material.map.image) return;
 
-    // 3D Model Variant Switching
-    function setModelVariant(variant) {
-      loadingOverlay.classList.remove('hidden');
-      loadingStatus.textContent = 'Loading ' + variant + ' model...';
+      baseImage = material.map.image;
+      texCanvas = document.createElement('canvas');
+      texCanvas.width = baseImage.width || 2048;
+      texCanvas.height = baseImage.height || 2048;
+      texCtx = texCanvas.getContext('2d');
 
-      if (variant === 'rigged') {
-        viewer.src = 'rigged.glb';
-        activeFilename.textContent = 'woman-base-character-rigged.glb';
-        animControlsGroup.style.display = 'flex';
-        setTimeout(() => {
-          viewer.animationName = 'walk';
-          viewer.play();
-        }, 300);
-      } else if (variant === 'full') {
-        viewer.pause();
-        viewer.src = 'woman-base-character.glb';
-        activeFilename.textContent = 'woman-base-character.glb';
-        animControlsGroup.style.display = 'none';
-      } else if (variant === 'light') {
-        viewer.pause();
-        viewer.src = 'preview.glb';
-        activeFilename.textContent = 'woman-base-character-light.glb';
-        animControlsGroup.style.display = 'none';
+      dynamicTexture = new THREE.CanvasTexture(texCanvas);
+      dynamicTexture.colorSpace = THREE.SRGBColorSpace;
+      dynamicTexture.flipY = false;
+
+      material.map = dynamicTexture;
+      updateFaceTexture();
+    }
+
+    function updateFaceTexture() {
+      if (!texCtx || !baseImage) return;
+
+      const w = texCanvas.width;
+      const h = texCanvas.height;
+
+      // Draw original clean basecolor
+      texCtx.drawImage(baseImage, 0, 0, w, h);
+
+      // Facial coordinates mapped from model UVs:
+      // In this model UV layout, Face is located in the upper quadrant:
+      // Center ~ (w * 0.49, h * 0.22)
+      const cx = w * 0.492;
+      const eyeY = h * 0.208;
+      const eyeSep = w * 0.048;
+      const eyeLeftX = cx - eyeSep;
+      const eyeRightX = cx + eyeSep;
+      const mouthX = cx;
+      const mouthY = h * 0.264;
+
+      // --- A. Dark Circles Near the Eyes ---
+      if (state.darkCirclesIntensity > 0) {
+        const darkAlpha = state.darkCirclesIntensity * 0.42;
+
+        [eyeLeftX, eyeRightX].forEach((ex) => {
+          const underEyeY = eyeY + h * 0.016;
+          const grad = texCtx.createRadialGradient(ex, underEyeY, 2, ex, underEyeY, w * 0.035);
+          grad.addColorStop(0, `rgba(58, 38, 42, ${darkAlpha})`);
+          grad.addColorStop(0.5, `rgba(74, 52, 58, ${darkAlpha * 0.65})`);
+          grad.addColorStop(1, 'rgba(74, 52, 58, 0)');
+
+          texCtx.save();
+          texCtx.fillStyle = grad;
+          texCtx.beginPath();
+          texCtx.ellipse(ex, underEyeY, w * 0.032, h * 0.014, 0, 0, Math.PI * 2);
+          texCtx.fill();
+          texCtx.restore();
+        });
+      }
+
+      // --- B. Facial Wrinkles (Forehead & Nasolabial smile creases) ---
+      if (state.wrinklesIntensity > 0) {
+        const wAlpha = state.wrinklesIntensity * 0.48;
+        texCtx.save();
+        texCtx.strokeStyle = `rgba(62, 42, 38, ${wAlpha})`;
+        texCtx.lineWidth = Math.max(2, w * 0.0018);
+        texCtx.lineCap = 'round';
+
+        // 1. Forehead expression lines
+        const fhY1 = eyeY - h * 0.045;
+        const fhY2 = eyeY - h * 0.062;
+        const fhY3 = eyeY - h * 0.076;
+
+        [[fhY1, 0.052], [fhY2, 0.046], [fhY3, 0.035]].forEach(([y, span]) => {
+          texCtx.beginPath();
+          texCtx.moveTo(cx - w * span, y);
+          texCtx.quadraticCurveTo(cx, y - 3, cx + w * span, y);
+          texCtx.stroke();
+        });
+
+        // 2. Crow's feet (outer eye wrinkles)
+        [ [eyeLeftX - w * 0.03, -1], [eyeRightX + w * 0.03, 1] ].forEach(([ox, dir]) => {
+          texCtx.beginPath();
+          texCtx.moveTo(ox, eyeY);
+          texCtx.lineTo(ox + dir * 12, eyeY - 6);
+          texCtx.moveTo(ox, eyeY);
+          texCtx.lineTo(ox + dir * 15, eyeY);
+          texCtx.moveTo(ox, eyeY);
+          texCtx.lineTo(ox + dir * 12, eyeY + 6);
+          texCtx.stroke();
+        });
+
+        // 3. Nasolabial smile folds (nose to mouth corners)
+        texCtx.beginPath();
+        texCtx.moveTo(cx - w * 0.02, eyeY + h * 0.032);
+        texCtx.quadraticCurveTo(cx - w * 0.034, mouthY - 4, cx - w * 0.026, mouthY + 12);
+        texCtx.stroke();
+
+        texCtx.beginPath();
+        texCtx.moveTo(cx + w * 0.02, eyeY + h * 0.032);
+        texCtx.quadraticCurveTo(cx + w * 0.034, mouthY - 4, cx + w * 0.026, mouthY + 12);
+        texCtx.stroke();
+
+        texCtx.restore();
+      }
+
+      // --- C. Eye Blinking ---
+      if (state.blinkValue > 0.05) {
+        const lidAlpha = Math.min(1, state.blinkValue * 1.2);
+        [eyeLeftX, eyeRightX].forEach((ex) => {
+          texCtx.save();
+          // Eyelid skin fold
+          texCtx.fillStyle = `rgba(182, 142, 126, ${lidAlpha})`;
+          texCtx.beginPath();
+          texCtx.ellipse(ex, eyeY, w * 0.024, h * (0.016 * state.blinkValue), 0, 0, Math.PI * 2);
+          texCtx.fill();
+
+          // Eyelash seam crease
+          texCtx.strokeStyle = `rgba(45, 30, 26, ${lidAlpha * 0.95})`;
+          texCtx.lineWidth = 3.5;
+          texCtx.beginPath();
+          texCtx.arc(ex, eyeY + 1, w * 0.022, 0.15, Math.PI - 0.15);
+          texCtx.stroke();
+          texCtx.restore();
+        });
+      }
+
+      // --- D. Talking Mouth Viseme Expression ---
+      if (state.speechViseme > 0.05) {
+        const mOpen = state.speechViseme;
+        texCtx.save();
+        texCtx.fillStyle = `rgba(48, 16, 20, ${mOpen * 0.9})`;
+        texCtx.beginPath();
+        texCtx.ellipse(mouthX, mouthY + 2, w * 0.022, h * (0.012 * mOpen), 0, 0, Math.PI * 2);
+        texCtx.fill();
+
+        // Upper and lower teeth highlight
+        texCtx.fillStyle = `rgba(240, 235, 230, ${mOpen * 0.85})`;
+        texCtx.fillRect(mouthX - w * 0.012, mouthY - 1, w * 0.024, 3 * mOpen);
+
+        // Lip outline
+        texCtx.strokeStyle = `rgba(142, 68, 76, ${mOpen * 0.7})`;
+        texCtx.lineWidth = 2;
+        texCtx.beginPath();
+        texCtx.ellipse(mouthX, mouthY + 2, w * 0.024, h * (0.013 * mOpen), 0, 0, Math.PI * 2);
+        texCtx.stroke();
+        texCtx.restore();
+      }
+
+      dynamicTexture.needsUpdate = true;
+    }
+
+    // 5. Procedural Skeleton Animation Engine (Hello, Bye, Checking, Sitting, Dancing)
+    const clock = new THREE.Clock();
+
+    function animateCustomActions(time) {
+      if (!boneMap || Object.keys(boneMap).length === 0) return;
+
+      const act = state.action;
+
+      // Bone shortcuts
+      const rShoulder = boneMap['RightShoulder'];
+      const rArm = boneMap['RightArm'];
+      const rForeArm = boneMap['RightForeArm'];
+      const rHand = boneMap['RightHand'];
+
+      const lShoulder = boneMap['LeftShoulder'];
+      const lArm = boneMap['LeftArm'];
+      const lForeArm = boneMap['LeftForeArm'];
+      const lHand = boneMap['LeftHand'];
+
+      const head = boneMap['Head'];
+      const spine = boneMap['Spine'];
+      const hips = boneMap['Hips'];
+      const rUpLeg = boneMap['RightUpLeg'];
+      const lUpLeg = boneMap['LeftUpLeg'];
+      const rLeg = boneMap['RightLeg'];
+      const lLeg = boneMap['LeftLeg'];
+
+      // Reset base position
+      if (hips) hips.position.y = 0;
+
+      // Subtle natural breathing across all poses
+      if (spine) spine.rotation.x = Math.sin(time * 2.2) * 0.035;
+
+      // A. 👋 HELLO (Friendly Greeting Wave)
+      if (act === 'hello') {
+        const wave = Math.sin(time * 6.5) * 0.42;
+        if (rArm) {
+          rArm.rotation.x = -1.15;
+          rArm.rotation.y = 0.2;
+          rArm.rotation.z = -1.45;
+        }
+        if (rForeArm) {
+          rForeArm.rotation.x = 0;
+          rForeArm.rotation.y = 0.6 + wave * 0.3;
+          rForeArm.rotation.z = -1.2;
+        }
+        if (rHand) {
+          rHand.rotation.z = wave * 0.8;
+          rHand.rotation.x = 0.3;
+        }
+        if (head) {
+          head.rotation.y = Math.sin(time * 2) * 0.12;
+          head.rotation.z = -0.08;
+          head.rotation.x = Math.sin(time * 3) * 0.06;
+        }
+        if (lArm) {
+          lArm.rotation.z = 0.3;
+          lArm.rotation.x = 0.1;
+        }
+      }
+
+      // B. 🙋‍♀️ BYE (High Wave Goodbye)
+      else if (act === 'bye') {
+        const wave = Math.sin(time * 8.0) * 0.55;
+        if (rArm) {
+          rArm.rotation.x = -0.8;
+          rArm.rotation.y = 0.1;
+          rArm.rotation.z = -2.1;
+        }
+        if (rForeArm) {
+          rForeArm.rotation.x = 0.2;
+          rForeArm.rotation.y = 0.4;
+          rForeArm.rotation.z = -0.8 + wave * 0.3;
+        }
+        if (rHand) {
+          rHand.rotation.z = wave;
+          rHand.rotation.x = 0.4;
+        }
+        if (head) {
+          head.rotation.y = -0.15 + Math.sin(time * 2) * 0.08;
+          head.rotation.z = -0.12;
+        }
+        if (spine) {
+          spine.rotation.z = Math.sin(time * 2.5) * 0.05;
+        }
+      }
+
+      // C. ⌚ CHECKING (Self-Check & Wrist Inspection)
+      else if (act === 'checking') {
+        const checkCycle = Math.sin(time * 1.8);
+        if (lArm) {
+          lArm.rotation.x = -0.85;
+          lArm.rotation.y = -0.55;
+          lArm.rotation.z = 0.95;
+        }
+        if (lForeArm) {
+          lForeArm.rotation.x = 0.4;
+          lForeArm.rotation.y = -1.35;
+          lForeArm.rotation.z = 0.6;
+        }
+        if (head) {
+          head.rotation.x = 0.45 + checkCycle * 0.1;
+          head.rotation.y = 0.35 + checkCycle * 0.15;
+        }
+        if (rArm) {
+          rArm.rotation.x = -0.3;
+          rArm.rotation.z = -0.4;
+        }
+        if (rForeArm) {
+          rForeArm.rotation.z = -0.6;
+        }
+      }
+
+      // D. 🪑 SITTING (Sitting Pose)
+      else if (act === 'sitting') {
+        if (hips) {
+          hips.position.y = -0.52;
+          hips.rotation.x = 0.08;
+        }
+        if (rUpLeg) {
+          rUpLeg.rotation.x = -1.55;
+          rUpLeg.rotation.y = -0.15;
+        }
+        if (lUpLeg) {
+          lUpLeg.rotation.x = -1.55;
+          lUpLeg.rotation.y = 0.15;
+        }
+        if (rLeg) {
+          rLeg.rotation.x = 1.62;
+        }
+        if (lLeg) {
+          lLeg.rotation.x = 1.62;
+        }
+        if (rArm) {
+          rArm.rotation.x = -0.65;
+          rArm.rotation.z = -0.3;
+        }
+        if (lArm) {
+          lArm.rotation.x = -0.65;
+          lArm.rotation.z = 0.3;
+        }
+        if (rForeArm) rForeArm.rotation.y = 0.4;
+        if (lForeArm) lForeArm.rotation.y = -0.4;
+        if (head) head.rotation.x = 0.05;
+      }
+
+      // E. 💃 DANCING (Rhythmic Hip Sway & Groove)
+      else if (act === 'dancing') {
+        const beat = time * 5.2;
+        const hipSway = Math.sin(beat) * 0.28;
+        const bounce = Math.abs(Math.cos(beat * 2)) * 0.06;
+
+        if (hips) {
+          hips.position.y = -bounce;
+          hips.rotation.z = hipSway;
+          hips.rotation.y = Math.cos(beat) * 0.18;
+        }
+        if (spine) {
+          spine.rotation.z = -hipSway * 0.6;
+          spine.rotation.x = 0.05 + Math.sin(beat * 2) * 0.06;
+        }
+        if (rArm) {
+          rArm.rotation.x = -0.6 + Math.sin(beat) * 0.4;
+          rArm.rotation.z = -0.8 + Math.cos(beat) * 0.3;
+        }
+        if (lArm) {
+          lArm.rotation.x = -0.6 - Math.sin(beat) * 0.4;
+          lArm.rotation.z = 0.8 - Math.cos(beat) * 0.3;
+        }
+        if (rForeArm) rForeArm.rotation.y = 0.8 + Math.sin(beat) * 0.3;
+        if (lForeArm) lForeArm.rotation.y = -0.8 - Math.sin(beat) * 0.3;
+        if (head) {
+          head.rotation.y = -Math.cos(beat) * 0.2;
+          head.rotation.x = Math.sin(beat * 2) * 0.1;
+        }
+      }
+
+      // F. IDLE (Standard A-Pose)
+      else if (act === 'idle') {
+        Object.keys(boneMap).forEach((name) => {
+          if (originalBoneRotations[name]) {
+            boneMap[name].quaternion.slerp(originalBoneRotations[name], 0.1);
+          }
+        });
       }
     }
 
-    // Canvas Pill Buttons
-    document.querySelectorAll('.pill-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const v = btn.dataset.variant;
-        setModelVariant(v);
+    // 6. Action Switcher
+    function setAction(actionName) {
+      state.action = actionName;
 
-        // sync download card version
-        if (v === 'rigged') {
-          syncVersionUI('rigged');
-        } else {
-          syncVersionUI('static');
-          if (v === 'light') syncQualityUI('light');
-          else syncQualityUI('full');
-        }
+      // Update UI buttons
+      document.querySelectorAll('.anim-btn[data-action]').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.action === actionName);
       });
+
+      const labels = {
+        hello: 'Hello 👋',
+        bye: 'Bye 🙋‍♀️',
+        checking: 'Checking ⌚',
+        sitting: 'Sitting 🪑',
+        dancing: 'Dancing 💃',
+        walk: 'Walk Cycle 🚶',
+        run: 'Run Cycle 🏃',
+        idle: 'A-Pose 🧍'
+      };
+      currentActionLabel.textContent = `Action: ${labels[actionName] || actionName}`;
+
+      // Handle baked takes (walk, run) vs procedural
+      if (actionName === 'walk') {
+        if (bakedRunAction) bakedRunAction.stop();
+        if (bakedWalkAction) bakedWalkAction.reset().fadeIn(0.3).play();
+      } else if (actionName === 'run') {
+        if (bakedWalkAction) bakedWalkAction.stop();
+        if (bakedRunAction) bakedRunAction.reset().fadeIn(0.3).play();
+      } else {
+        if (bakedWalkAction) bakedWalkAction.fadeOut(0.3);
+        if (bakedRunAction) bakedRunAction.fadeOut(0.3);
+      }
+    }
+
+    document.querySelectorAll('.anim-btn[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => setAction(btn.dataset.action));
     });
 
-    // Animation Controls
-    document.querySelectorAll('.anim-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.anim-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        const anim = btn.dataset.anim;
-        if (anim === 'none') {
-          viewer.pause();
-        } else {
-          viewer.animationName = anim;
-          viewer.play();
+    // 7. Eye Blinking Logic
+    function handleBlinking(delta, elapsed) {
+      if (state.autoBlink) {
+        if (!state.isBlinking && elapsed - state.lastBlinkTime > state.nextBlinkInterval) {
+          state.isBlinking = true;
+          state.lastBlinkTime = elapsed;
+          state.nextBlinkInterval = 2.8 + Math.random() * 2.5; // Natural 2.8 - 5.3s blinks
         }
-      });
+      }
+
+      if (state.isBlinking) {
+        const blinkProgress = (elapsed - state.lastBlinkTime) / 0.18; // 180ms blink
+        if (blinkProgress <= 0.5) {
+          state.blinkValue = blinkProgress * 2; // close
+        } else if (blinkProgress <= 1.0) {
+          state.blinkValue = (1.0 - blinkProgress) * 2; // open
+        } else {
+          state.blinkValue = 0;
+          state.isBlinking = false;
+        }
+        updateFaceTexture();
+      }
+    }
+
+    document.getElementById('btn-manual-blink').addEventListener('click', () => {
+      state.isBlinking = true;
+      state.lastBlinkTime = clock.getElapsedTime();
     });
 
-    // Auto-Rotate Toggle
+    const btnToggleBlink = document.getElementById('btn-toggle-blink');
+    btnToggleBlink.addEventListener('click', () => {
+      state.autoBlink = !state.autoBlink;
+      btnToggleBlink.classList.toggle('active', state.autoBlink);
+      btnToggleBlink.textContent = state.autoBlink ? '👁️ Auto Blink (Active)' : '👁️ Auto Blink (Paused)';
+    });
+
+    // 8. Talking Mouth & Web Speech Synthesis
+    const speechInput = document.getElementById('speech-input');
+    const btnSpeak = document.getElementById('btn-speak-voice');
+    const speechStatus = document.getElementById('speech-status-text');
+
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Web Speech API is not supported in this browser.');
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.15; // natural feminine tone
+
+      // Try picking an English female voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const naturalVoice = voices.find((v) => v.lang.startsWith('en') && (v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha')));
+      if (naturalVoice) utterance.voice = naturalVoice;
+
+      utterance.onstart = () => {
+        state.isSpeaking = true;
+        speechStatus.textContent = 'Speaking...';
+        speechStatus.style.color = '#20c997';
+      };
+
+      utterance.onend = () => {
+        state.isSpeaking = false;
+        state.speechViseme = 0;
+        updateFaceTexture();
+        speechStatus.textContent = 'Finished';
+        speechStatus.style.color = 'var(--text-muted)';
+      };
+
+      utterance.onerror = () => {
+        state.isSpeaking = false;
+        state.speechViseme = 0;
+        updateFaceTexture();
+        speechStatus.textContent = 'Ready';
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    btnSpeak.addEventListener('click', () => {
+      const text = speechInput.value.trim() || 'Hello! Nice to meet you.';
+      speakText(text);
+    });
+
+    // 9. Face Texture Sliders (Dark Circles & Wrinkles)
+    const sliderDarkCircles = document.getElementById('slider-dark-circles');
+    const valDarkCircles = document.getElementById('val-dark-circles');
+    sliderDarkCircles.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10);
+      state.darkCirclesIntensity = v / 100;
+      valDarkCircles.textContent = `${v}%`;
+      updateFaceTexture();
+    });
+
+    const sliderWrinkles = document.getElementById('slider-wrinkles');
+    const valWrinkles = document.getElementById('val-wrinkles');
+    sliderWrinkles.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10);
+      state.wrinklesIntensity = v / 100;
+      valWrinkles.textContent = `${v}%`;
+      updateFaceTexture();
+    });
+
+    // 10. Camera & View Tool Actions
+    document.getElementById('btn-focus-face').addEventListener('click', () => {
+      controls.target.set(0, 1.58, 0);
+      camera.position.set(0, 1.62, 0.95);
+    });
+
+    document.getElementById('tab-reset-cam').addEventListener('click', () => {
+      controls.target.set(0, 1.1, 0);
+      camera.position.set(0, 1.25, 3.2);
+    });
+
     const btnAutorotate = document.getElementById('btn-autorotate');
     btnAutorotate.addEventListener('click', () => {
-      isAutoRotating = !isAutoRotating;
-      viewer.autoRotate = isAutoRotating;
-      btnAutorotate.classList.toggle('active', isAutoRotating);
+      state.autoRotate = !state.autoRotate;
+      controls.autoRotate = state.autoRotate;
+      controls.autoRotateSpeed = 2.0;
+      btnAutorotate.classList.toggle('active', state.autoRotate);
     });
 
-    // Fullscreen Toggle
-    const btnFullscreen = document.getElementById('btn-fullscreen');
-    btnFullscreen.addEventListener('click', () => {
+    const btnWireframe = document.getElementById('btn-wireframe');
+    btnWireframe.addEventListener('click', () => {
+      state.wireframe = !state.wireframe;
+      if (skinnedMesh && skinnedMesh.material) {
+        skinnedMesh.material.wireframe = state.wireframe;
+      }
+      btnWireframe.classList.toggle('active', state.wireframe);
+    });
+
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
       if (!document.fullscreenElement) {
-        viewer.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
+        container.requestFullscreen().catch((err) => alert(`Error: ${err.message}`));
       } else {
         document.exitFullscreen();
       }
     });
 
-    // Reset Camera
-    document.getElementById('tab-reset-cam').addEventListener('click', () => {
-      viewer.cameraOrbit = '0deg 78deg 3.4m';
-      viewer.fieldOfView = 'auto';
+    // 11. Variant Pill Buttons (Rigged vs Static)
+    document.getElementById('pill-rigged').addEventListener('click', () => {
+      document.getElementById('pill-rigged').classList.add('active');
+      document.getElementById('pill-static').classList.remove('active');
+      activeFilename.textContent = 'woman-base-character-rigged.glb';
+      setAction('hello');
     });
 
-    // Lighting Presets
-    document.getElementById('env-select').addEventListener('change', (e) => {
-      const val = e.target.value;
-      if (val === 'neutral') {
-        viewer.environmentImage = '';
-        viewer.exposure = 1.0;
-        viewer.shadowIntensity = 1.2;
-      } else if (val === 'warm') {
-        viewer.exposure = 1.25;
-        viewer.shadowIntensity = 1.0;
-      } else if (val === 'cool') {
-        viewer.exposure = 1.1;
-        viewer.shadowIntensity = 0.9;
-      } else if (val === 'dark') {
-        viewer.exposure = 2.2;
-        viewer.shadowIntensity = 1.4;
-      }
+    document.getElementById('pill-static').addEventListener('click', () => {
+      document.getElementById('pill-static').classList.add('active');
+      document.getElementById('pill-rigged').classList.remove('active');
+      activeFilename.textContent = 'woman-base-character.glb';
+      setAction('idle');
     });
 
-    // Download UI Sync
-    function syncVersionUI(v) {
-      currentVersion = v;
-      document.querySelectorAll('#version-selector .seg-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.v === v);
-      });
-
-      const qWrap = document.getElementById('quality-selector-wrap');
-      const tileUsdz = document.getElementById('tile-usdz');
-      const tileObj = document.getElementById('tile-obj');
-
-      if (v === 'rigged') {
-        qWrap.style.display = 'none';
-        tileUsdz.style.display = 'none';
-        tileObj.style.display = 'none';
-        if (currentFmt === 'usdz' || currentFmt === 'obj-zip') currentFmt = 'glb';
-        document.getElementById('size-glb').textContent = '12 MB';
-        document.getElementById('size-fbx').textContent = '18 MB';
-        document.getElementById('size-blend').textContent = '13 MB';
-      } else {
-        qWrap.style.display = 'block';
-        tileUsdz.style.display = 'flex';
-        tileObj.style.display = 'flex';
-        document.getElementById('size-glb').textContent = currentQuality === 'full' ? '13 MB' : '4.6 MB';
-        document.getElementById('size-fbx').textContent = currentQuality === 'full' ? '20 MB' : '9.1 MB';
-        document.getElementById('size-blend').textContent = '15 MB';
-      }
-
-      updateDownloadButton();
-    }
-
-    function syncQualityUI(q) {
-      currentQuality = q;
-      document.querySelectorAll('#quality-selector-wrap .seg-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.q === q);
-      });
-      document.getElementById('size-glb').textContent = q === 'full' ? '13 MB' : '4.6 MB';
-      document.getElementById('size-fbx').textContent = q === 'full' ? '20 MB' : '9.1 MB';
-      updateDownloadButton();
-    }
-
-    function updateDownloadButton() {
-      let option;
-      if (currentVersion === 'rigged') {
-        option = assetMatrix.rigged[currentFmt] || assetMatrix.rigged.glb;
-      } else {
-        const branch = assetMatrix.static[currentQuality] || assetMatrix.static.full;
-        option = branch[currentFmt] || branch.glb;
-      }
-
-      if (option) {
-        downloadBtn.href = option.file;
-        downloadBtn.setAttribute('download', option.file.split('/').pop());
-        downloadBtnText.textContent = option.label;
-      }
-    }
-
-    // Version buttons click
-    document.querySelectorAll('#version-selector .seg-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        syncVersionUI(b.dataset.v);
-        setModelVariant(b.dataset.v === 'rigged' ? 'rigged' : (currentQuality === 'light' ? 'light' : 'full'));
-      });
-    });
-
-    // Quality buttons click
-    document.querySelectorAll('#quality-selector-wrap .seg-btn').forEach(b => {
-      b.addEventListener('click', () => {
-        syncQualityUI(b.dataset.q);
-        setModelVariant(b.dataset.q === 'light' ? 'light' : 'full');
-      });
-    });
-
-    // Format tiles click
-    document.querySelectorAll('.format-tile').forEach(tile => {
+    // 12. Download Tiles
+    document.querySelectorAll('.format-tile').forEach((tile) => {
       tile.addEventListener('click', () => {
-        document.querySelectorAll('.format-tile').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.format-tile').forEach((t) => t.classList.remove('active'));
         tile.classList.add('active');
-        currentFmt = tile.dataset.fmt;
-        updateDownloadButton();
+
+        const dlBtn = document.getElementById('main-download-btn');
+        const dlText = document.getElementById('btn-download-text');
+
+        dlBtn.href = tile.dataset.dlFile;
+        dlBtn.setAttribute('download', tile.dataset.dlName);
+        dlText.textContent = tile.dataset.dlLabel;
       });
     });
 
-    // Initialize button
-    updateDownloadButton();
+    // Window Resize Handler
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // 13. Main Render Loop
+    function render() {
+      requestAnimationFrame(render);
+
+      const delta = clock.getDelta();
+      const elapsed = clock.getElapsedTime();
+
+      // Update mixer for walk/run baked takes
+      if (mixer) mixer.update(delta);
+
+      // Procedural action bone rotations
+      animateCustomActions(elapsed);
+
+      // Eye blinking
+      handleBlinking(delta, elapsed);
+
+      // Talking mouth visemes
+      if (state.isSpeaking) {
+        state.speechViseme = Math.abs(Math.sin(elapsed * 18)) * 0.85 + Math.sin(elapsed * 8) * 0.15;
+        updateFaceTexture();
+
+        // Subtle talking head gestures
+        if (boneMap['Head']) {
+          boneMap['Head'].rotation.x += Math.sin(elapsed * 12) * 0.025;
+        }
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    render();
   </script>
 </body>
 </html>
