@@ -1214,8 +1214,8 @@
               😐 Neutral
             </button>
 
-            <button type="button" class="anim-btn btn-talk-toggle" id="btn-talk-toggle" style="margin-left: 8px;">
-              🗣️ Continuous Talk (Off)
+            <button type="button" class="anim-btn active btn-talk-toggle" id="btn-talk-toggle" style="margin-left: 8px;">
+              🗣️ Continuous Talk (ON)
             </button>
           </div>
 
@@ -1526,7 +1526,7 @@
       action: 'wait', // wait, hello, bye, checking, sitting, dancing, walk, run
       outfit: 'red_gown', // 'red_gown' or 'classic'
       expression: 'happy', // 'happy', 'sad', 'crying', 'neutral'
-      continuousTalking: false,
+      continuousTalking: true,
       autoBlink: true,
       blinkValue: 0,
       isBlinking: false,
@@ -1643,74 +1643,198 @@
       return res.normalize();
     }
 
-    // Red Gown Shader Uniforms & Material Customizer
-    const gownUniforms = {
-      uGownActive: { value: 1.0 }, // 1.0 = Red Gown active, 0.0 = Classic Studio
-      uTime: { value: 0 }
-    };
+    // True 3D Attached Red Frock / Gown (Flared skirt, 3D folds, gold embroidery, attached to skeleton!)
+    let frockMesh = null;
 
-    function setupGownShader(material) {
-      if (!material) return;
-      material.onBeforeCompile = (shader) => {
-        shader.uniforms.uGownActive = gownUniforms.uGownActive;
-        shader.uniforms.uTime = gownUniforms.uTime;
+    function createRedFrockSkinnedMesh(baseSkinnedMesh) {
+      if (!baseSkinnedMesh || !baseSkinnedMesh.skeleton) return;
 
-        shader.vertexShader = shader.vertexShader.replace(
-          '#include <common>',
-          `#include <common>
-           varying vec3 vCustomWorldPos;`
-        );
-        shader.vertexShader = shader.vertexShader.replace(
-          '#include <worldpos_vertex>',
-          `#include <worldpos_vertex>
-           vCustomWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;`
-        );
+      const rings = 32;
+      const segments = 40;
+      const positions = [];
+      const uvs = [];
+      const skinIndices = [];
+      const skinWeights = [];
+      const indices = [];
 
-        shader.fragmentShader = shader.fragmentShader.replace(
-          '#include <common>',
-          `#include <common>
-           varying vec3 vCustomWorldPos;
-           uniform float uGownActive;
-           uniform float uTime;`
-        );
+      // y from 0.38 (flared frock skirt hem) up to 1.33 (sweetheart bodice neckline)
+      const yMin = 0.38;
+      const yMax = 1.33;
 
-        shader.fragmentShader = shader.fragmentShader.replace(
-          '#include <color_fragment>',
-          `#include <color_fragment>
-           if (uGownActive > 0.5) {
-             // Red gown covers body and legs below collarbone (neck and face remain unblemished)
-             float neckCutoff = 1.34;
-             if (vCustomWorldPos.y < neckCutoff) {
-               // Deep royal crimson velvet & silk gown
-               vec3 crimsonDeep = vec3(0.55, 0.03, 0.08);
-               vec3 crimsonHighlight = vec3(0.85, 0.08, 0.16);
-               
-               // Fabric fold shading based on height & view
-               float fold = sin(vCustomWorldPos.y * 28.0) * 0.08 + cos(vCustomWorldPos.x * 22.0) * 0.05;
-               vec3 gownColor = mix(crimsonDeep, crimsonHighlight, 0.45 + fold);
+      for (let r = 0; r <= rings; r++) {
+        const frac = r / rings; // 0 at hemline, 1 at chest neckline
+        const y = yMin + frac * (yMax - yMin);
 
-               // Gold lace trim at neckline
-               if (vCustomWorldPos.y > 1.31 && vCustomWorldPos.y <= 1.34) {
-                 float lace = sin(vCustomWorldPos.x * 65.0) * 0.5 + 0.5;
-                 vec3 goldColor = vec3(0.92, 0.78, 0.28);
-                 gownColor = mix(goldColor, vec3(1.0, 0.9, 0.5), lace);
-               }
+        let radius = 0.165;
+        let zCenter = 0.005;
 
-               // Gold corset lace belt at waist (around y = 0.98 to 1.04)
-               if (vCustomWorldPos.y >= 0.98 && vCustomWorldPos.y <= 1.04) {
-                 float waistPattern = sin(vCustomWorldPos.x * 45.0 + vCustomWorldPos.y * 30.0) * 0.5 + 0.5;
-                 vec3 waistGold = vec3(0.88, 0.72, 0.22);
-                 gownColor = mix(waistGold, vec3(0.98, 0.88, 0.45), waistPattern);
-               }
+        if (y < 0.98) {
+          // Flared A-line frock skirt! Has distinct physical 3D volume & clearance over legs
+          const skirtFrac = (0.98 - y) / (0.98 - yMin); // 0 at waist, 1 at hem
+          radius = 0.168 + 0.28 * Math.pow(skirtFrac, 1.25);
+          zCenter = -0.015 * skirtFrac;
+        } else if (y < 1.05) {
+          // Fitted waistline
+          radius = 0.162;
+          zCenter = 0.002;
+        } else if (y < 1.20) {
+          // Fitted ribcage
+          radius = 0.178;
+          zCenter = 0.008;
+        } else {
+          // Bodice bust
+          radius = 0.188;
+          zCenter = 0.015;
+        }
 
-               // Smooth transition at collarbone to natural skin
-               float blendEdge = smoothstep(1.31, 1.34, vCustomWorldPos.y);
-               diffuseColor.rgb = mix(gownColor, diffuseColor.rgb, blendEdge);
-             }
-           }`
-        );
-      };
-      material.needsUpdate = true;
+        // Armature bone weighting:
+        // Joint 11 = Spine (y ~ 1.28)
+        // Joint 10 = Spine01 (y ~ 1.16)
+        // Joint 9  = Spine02 (y ~ 1.05)
+        // Joint 0  = Hips (y ~ 0.94)
+        // Joint 1  = LeftUpLeg
+        // Joint 5  = RightUpLeg
+        let b1 = 0, b2 = 0, w1 = 1.0, w2 = 0.0;
+        if (y >= 1.22) {
+          b1 = 11; b2 = 10; w1 = (y - 1.22) / 0.11; w2 = 1.0 - w1;
+        } else if (y >= 1.10) {
+          b1 = 10; b2 = 9; w1 = (y - 1.10) / 0.12; w2 = 1.0 - w1;
+        } else if (y >= 0.98) {
+          b1 = 9; b2 = 0; w1 = (y - 0.98) / 0.12; w2 = 1.0 - w1;
+        } else {
+          // Skirt follows hips primarily
+          b1 = 0; b2 = 0; w1 = 1.0; w2 = 0.0;
+        }
+
+        for (let s = 0; s <= segments; s++) {
+          const u = s / segments;
+          const angle = u * Math.PI * 2;
+
+          // Realistic 3D fabric ripples / vertical pleat waves in skirt
+          let pleat = 1.0;
+          if (y < 0.98) {
+            const skirtFrac = (0.98 - y) / (0.98 - yMin);
+            pleat = 1.0 + 0.075 * skirtFrac * Math.sin(angle * 12);
+          }
+
+          const x = Math.cos(angle) * radius * pleat;
+          const z = zCenter + Math.sin(angle) * (radius * 0.89) * pleat;
+
+          positions.push(x, y, z);
+          uvs.push(u, frac);
+
+          let finalB1 = b1, finalB2 = b2, finalW1 = w1, finalW2 = w2;
+          if (y < 0.88) {
+            const legBlend = Math.min(0.25, (0.88 - y) * 0.35);
+            if (x > 0.02) {
+              finalB2 = 1; finalW2 = legBlend; finalW1 = 1.0 - legBlend;
+            } else if (x < -0.02) {
+              finalB2 = 5; finalW2 = legBlend; finalW1 = 1.0 - legBlend;
+            }
+          }
+
+          skinIndices.push(finalB1, finalB2, 0, 0);
+          skinWeights.push(finalW1, finalW2, 0, 0);
+        }
+      }
+
+      // Triangular indices
+      for (let r = 0; r < rings; r++) {
+        for (let s = 0; s < segments; s++) {
+          const a = r * (segments + 1) + s;
+          const b = (r + 1) * (segments + 1) + s;
+          const c = (r + 1) * (segments + 1) + (s + 1);
+          const d = r * (segments + 1) + (s + 1);
+
+          indices.push(a, b, d);
+          indices.push(b, c, d);
+        }
+      }
+
+      const dressGeo = new THREE.BufferGeometry();
+      dressGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      dressGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      dressGeo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(skinIndices, 4));
+      dressGeo.setAttribute('skinWeight', new THREE.Float32BufferAttribute(skinWeights, 4));
+      dressGeo.setIndex(indices);
+      dressGeo.computeVertexNormals();
+
+      // Procedural Fabric Canvas Texture (Deep Crimson Velvet with Gold Lace borders)
+      const dTexCanvas = document.createElement('canvas');
+      dTexCanvas.width = 1024;
+      dTexCanvas.height = 1024;
+      const dCtx = dTexCanvas.getContext('2d');
+
+      // Base crimson silk/velvet gradient
+      const grad = dCtx.createLinearGradient(0, 0, 0, 1024);
+      grad.addColorStop(0, '#5a020d'); // deep velvet near hem
+      grad.addColorStop(0.3, '#8e0618');
+      grad.addColorStop(0.65, '#b00922'); // waist
+      grad.addColorStop(1.0, '#7a0414'); // bodice top
+      dCtx.fillStyle = grad;
+      dCtx.fillRect(0, 0, 1024, 1024);
+
+      // Velvet weave micro-pattern
+      dCtx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+      for (let i = 0; i < 1024; i += 8) {
+        dCtx.fillRect(i, 0, 4, 1024);
+      }
+
+      // 1. Ornate Gold Embroidery at Hemline (frac = 0, y ~ 0.38)
+      dCtx.fillStyle = '#e6b830';
+      dCtx.fillRect(0, 0, 1024, 28);
+      dCtx.strokeStyle = '#fff088';
+      dCtx.lineWidth = 3;
+      dCtx.beginPath();
+      for (let x = 0; x <= 1024; x += 16) {
+        dCtx.arc(x + 8, 28, 8, 0, Math.PI);
+      }
+      dCtx.stroke();
+
+      // 2. Gold Lace Corset Belt at Waist (frac ~ 0.63, y ~ 0.98)
+      const waistY = 1024 * 0.63;
+      dCtx.fillStyle = '#d4a222';
+      dCtx.fillRect(0, waistY - 14, 1024, 28);
+      dCtx.strokeStyle = '#fff5a0';
+      dCtx.lineWidth = 2.5;
+      dCtx.beginPath();
+      for (let x = 0; x <= 1024; x += 32) {
+        dCtx.moveTo(x, waistY - 14);
+        dCtx.lineTo(x + 16, waistY + 14);
+        dCtx.lineTo(x + 32, waistY - 14);
+      }
+      dCtx.stroke();
+
+      // 3. Gold Lace Neckline Trim (frac = 1.0, y ~ 1.33)
+      dCtx.fillStyle = '#e6b830';
+      dCtx.fillRect(0, 1000, 1024, 24);
+      dCtx.strokeStyle = '#fff8b0';
+      dCtx.lineWidth = 3;
+      dCtx.beginPath();
+      for (let x = 0; x <= 1024; x += 16) {
+        dCtx.arc(x + 8, 1000, 8, Math.PI, 0);
+      }
+      dCtx.stroke();
+
+      const dressTexture = new THREE.CanvasTexture(dTexCanvas);
+      dressTexture.colorSpace = THREE.SRGBColorSpace;
+      dressTexture.wrapS = THREE.RepeatWrapping;
+      dressTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+      const dressMat = new THREE.MeshStandardMaterial({
+        map: dressTexture,
+        roughness: 0.35,
+        metalness: 0.15,
+        side: THREE.DoubleSide
+      });
+
+      frockMesh = new THREE.SkinnedMesh(dressGeo, dressMat);
+      frockMesh.bind(baseSkinnedMesh.skeleton, baseSkinnedMesh.bindMatrix);
+      frockMesh.castShadow = true;
+      frockMesh.receiveShadow = true;
+      frockMesh.visible = (state.outfit === 'red_gown');
+
+      characterModel.add(frockMesh);
     }
 
     // 4. Procedural Lifelike Human Animation Generator
@@ -2031,8 +2155,8 @@
         // Initialize Face Texture Shading (Blinking, Dark Circles & Wrinkles)
         initFaceTextureMod(characterMaterial);
 
-        // Apply Red Gown Silk & Velvet Material Shader
-        setupGownShader(characterMaterial);
+        // Create and Attach 3D Red Frock / Gown to Skeleton!
+        createRedFrockSkinnedMesh(skinnedMesh);
 
         scene.add(characterModel);
         loadingOverlay.classList.add('hidden');
@@ -2197,38 +2321,15 @@
         texCtx.restore();
       }
 
-      // --- C. Eye Blinking ---
-      if (state.blinkValue > 0.03) {
-        const lidProgress = Math.min(1.0, state.blinkValue);
-        [eyeLeftX, eyeRightX].forEach((ex) => {
-          texCtx.save();
-          // Flesh-toned eyelid closing over the eye
-          texCtx.fillStyle = `rgba(184, 140, 124, ${Math.min(1, lidProgress * 1.35)})`;
-          texCtx.beginPath();
-          texCtx.ellipse(ex, eyeY, w * 0.026, h * (0.018 * lidProgress), 0, 0, Math.PI * 2);
-          texCtx.fill();
-
-          // Dark prominent eyelash line along lid rim
-          texCtx.strokeStyle = `rgba(30, 18, 16, ${Math.min(1, lidProgress * 1.5)})`;
-          texCtx.lineWidth = Math.max(3, w * 0.0022);
-          texCtx.lineCap = 'round';
-          texCtx.beginPath();
-          texCtx.arc(ex, eyeY + (lidProgress * 3), w * 0.024, 0.12, Math.PI - 0.12);
-          texCtx.stroke();
-          texCtx.restore();
-        });
-      }
-
-      // --- D. Facial Expressions (Happy, Sad, Crying, Neutral) ---
+      // --- C. Facial Base Accents (Cheeks, Nose, Brows, Tears) ---
       if (state.expression === 'happy') {
-        // 1. Rosy Warm Blush on Cheeks
+        // Rosy warm blush on apples of cheeks
         [cx - w * 0.052, cx + w * 0.052].forEach((cheekX) => {
           const cheekY = eyeY + h * 0.038;
           const blushGrad = texCtx.createRadialGradient(cheekX, cheekY, 2, cheekX, cheekY, w * 0.038);
-          blushGrad.addColorStop(0, 'rgba(238, 92, 118, 0.45)');
-          blushGrad.addColorStop(0.55, 'rgba(238, 92, 118, 0.22)');
-          blushGrad.addColorStop(1, 'rgba(238, 92, 118, 0)');
-
+          blushGrad.addColorStop(0, 'rgba(240, 95, 120, 0.48)');
+          blushGrad.addColorStop(0.55, 'rgba(240, 95, 120, 0.22)');
+          blushGrad.addColorStop(1, 'rgba(240, 95, 120, 0)');
           texCtx.save();
           texCtx.fillStyle = blushGrad;
           texCtx.beginPath();
@@ -2236,60 +2337,25 @@
           texCtx.fill();
           texCtx.restore();
         });
-
-        // 2. Cheerful Upturned Smiling Lips
-        texCtx.save();
-        texCtx.strokeStyle = 'rgba(172, 60, 72, 0.85)';
-        texCtx.lineWidth = 3.5;
-        texCtx.lineCap = 'round';
-        texCtx.beginPath();
-        texCtx.moveTo(mouthX - w * 0.024, mouthY - 4);
-        texCtx.quadraticCurveTo(mouthX, mouthY + 12, mouthX + w * 0.024, mouthY - 4);
-        texCtx.stroke();
-
-        // Upper lip gentle curve
-        texCtx.beginPath();
-        texCtx.moveTo(mouthX - w * 0.020, mouthY - 3);
-        texCtx.quadraticCurveTo(mouthX, mouthY - 6, mouthX + w * 0.020, mouthY - 3);
-        texCtx.stroke();
-
-        // Eye highlights/sparkles
-        [eyeLeftX, eyeRightX].forEach((ex) => {
-          texCtx.fillStyle = 'rgba(255, 255, 255, 0.90)';
-          texCtx.beginPath();
-          texCtx.arc(ex - 3, eyeY - 2, 2.8, 0, Math.PI * 2);
-          texCtx.fill();
-        });
-        texCtx.restore();
-
       } else if (state.expression === 'sad') {
-        // 1. Downturned Sorrowful Mouth
+        // Melancholy Eyebrow Furrow (Frowning inner brows lifted & angled)
         texCtx.save();
-        texCtx.strokeStyle = 'rgba(125, 62, 68, 0.85)';
-        texCtx.lineWidth = 3.5;
+        texCtx.strokeStyle = 'rgba(58, 36, 32, 0.65)';
+        texCtx.lineWidth = 3.0;
         texCtx.lineCap = 'round';
+        // Left inner brow angled
         texCtx.beginPath();
-        texCtx.moveTo(mouthX - w * 0.022, mouthY + 8);
-        texCtx.quadraticCurveTo(mouthX, mouthY - 2, mouthX + w * 0.022, mouthY + 8);
+        texCtx.moveTo(eyeLeftX - w * 0.024, eyeY - h * 0.038);
+        texCtx.lineTo(eyeLeftX + w * 0.018, eyeY - h * 0.048);
         texCtx.stroke();
-
-        // 2. Melancholy Eyebrow Furrow
-        texCtx.strokeStyle = 'rgba(65, 42, 38, 0.55)';
-        texCtx.lineWidth = 2.5;
-        // Left inner brow tilted up
+        // Right inner brow angled
         texCtx.beginPath();
-        texCtx.moveTo(eyeLeftX - w * 0.022, eyeY - h * 0.038);
-        texCtx.lineTo(eyeLeftX + w * 0.016, eyeY - h * 0.046);
-        texCtx.stroke();
-        // Right inner brow tilted up
-        texCtx.beginPath();
-        texCtx.moveTo(eyeRightX + w * 0.022, eyeY - h * 0.038);
-        texCtx.lineTo(eyeRightX - w * 0.016, eyeY - h * 0.046);
+        texCtx.moveTo(eyeRightX + w * 0.024, eyeY - h * 0.038);
+        texCtx.lineTo(eyeRightX - w * 0.018, eyeY - h * 0.048);
         texCtx.stroke();
         texCtx.restore();
-
       } else if (state.expression === 'crying') {
-        // 1. Red Weeping Flush on Cheeks and Nose
+        // Red weeping flush on cheeks and nose tip
         [cx - w * 0.048, cx + w * 0.048].forEach((cheekX) => {
           const cheekY = eyeY + h * 0.035;
           const weepGrad = texCtx.createRadialGradient(cheekX, cheekY, 2, cheekX, cheekY, w * 0.042);
@@ -2303,8 +2369,6 @@
           texCtx.fill();
           texCtx.restore();
         });
-
-        // Flushed nose tip
         const noseGrad = texCtx.createRadialGradient(cx, eyeY + h * 0.030, 1, cx, eyeY + h * 0.030, w * 0.018);
         noseGrad.addColorStop(0, 'rgba(225, 65, 80, 0.38)');
         noseGrad.addColorStop(1, 'rgba(225, 65, 80, 0)');
@@ -2315,46 +2379,17 @@
         texCtx.fill();
         texCtx.restore();
 
-        // 2. Trembling Downturned Lips
-        texCtx.save();
-        texCtx.strokeStyle = 'rgba(145, 62, 70, 0.90)';
-        texCtx.lineWidth = 3.5;
-        texCtx.lineCap = 'round';
-        texCtx.beginPath();
-        texCtx.moveTo(mouthX - w * 0.022, mouthY + 9);
-        texCtx.quadraticCurveTo(mouthX, mouthY - 1, mouthX + w * 0.022, mouthY + 9);
-        texCtx.stroke();
-
-        // Lower trembling chin shadow
-        texCtx.strokeStyle = 'rgba(110, 48, 55, 0.45)';
-        texCtx.lineWidth = 2.0;
-        texCtx.beginPath();
-        texCtx.arc(mouthX, mouthY + 16, 10, 0.2, Math.PI - 0.2);
-        texCtx.stroke();
-        texCtx.restore();
-
-        // 3. Wet Tear Pools Under Eyes & Streaming Tears Rolling Down Cheeks
+        // Glistening wet tears streaming down cheeks
         [eyeLeftX, eyeRightX].forEach((ex) => {
           const underEyeY = eyeY + h * 0.012;
           texCtx.save();
-
-          // Wet tear puddle rim
           texCtx.fillStyle = 'rgba(185, 225, 255, 0.65)';
           texCtx.beginPath();
           texCtx.ellipse(ex, underEyeY, w * 0.020, h * 0.005, 0, 0, Math.PI * 2);
           texCtx.fill();
 
-          // Glistening light reflection in tear pool
-          texCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-          texCtx.beginPath();
-          texCtx.arc(ex - 2, underEyeY, 2.2, 0, Math.PI * 2);
-          texCtx.fill();
-
-          // Animated Tear Stream flowing down cheek towards jaw
           const tearStreamEndY = mouthY + h * 0.025;
           const currentTearY = underEyeY + (tearStreamEndY - underEyeY) * state.tearProgress;
-
-          // Flowing tear trail
           const tearGrad = texCtx.createLinearGradient(ex, underEyeY, ex, currentTearY);
           tearGrad.addColorStop(0, 'rgba(195, 230, 255, 0.15)');
           tearGrad.addColorStop(0.8, 'rgba(195, 230, 255, 0.65)');
@@ -2368,43 +2403,179 @@
           texCtx.quadraticCurveTo(ex + (ex > cx ? 4 : -4), (underEyeY + currentTearY) * 0.5, ex + (ex > cx ? 2 : -2), currentTearY);
           texCtx.stroke();
 
-          // Liquid Tear Drop bead at the leading tip
           texCtx.fillStyle = 'rgba(215, 240, 255, 0.92)';
           texCtx.beginPath();
           texCtx.arc(ex + (ex > cx ? 2 : -2), currentTearY, 3.8, 0, Math.PI * 2);
           texCtx.fill();
 
-          // Crisp white droplet specular highlight
           texCtx.fillStyle = 'rgba(255, 255, 255, 1.0)';
           texCtx.beginPath();
           texCtx.arc(ex + (ex > cx ? 1.5 : -2.5), currentTearY - 1, 1.6, 0, Math.PI * 2);
           texCtx.fill();
-
           texCtx.restore();
         });
       }
 
-      // --- E. Talking Mouth Viseme Expression ---
-      if (state.speechViseme > 0.04) {
-        const mOpen = state.speechViseme;
-        texCtx.save();
-        // Inner mouth cavity
-        texCtx.fillStyle = `rgba(45, 14, 18, ${mOpen * 0.95})`;
+      // --- D. Mouth & Lip Movement (Talking, Smiling, Frowning) ---
+      const mOpen = state.speechViseme;
+      const mw = w * 0.024;
+      texCtx.save();
+
+      if (state.expression === 'happy') {
+        // Happy Smile (Corners turned UP):
+        const smileCornerY = mouthY - 5;
+        const smileCenterY = mouthY + 10 + mOpen * 14;
+
+        if (mOpen > 0.04) {
+          // Inner mouth cavity while speaking in a smile
+          texCtx.fillStyle = 'rgba(52, 14, 20, 0.95)';
+          texCtx.beginPath();
+          texCtx.moveTo(mouthX - mw, smileCornerY);
+          texCtx.quadraticCurveTo(mouthX, smileCenterY, mouthX + mw, smileCornerY);
+          texCtx.quadraticCurveTo(mouthX, mouthY - 2, mouthX - mw, smileCornerY);
+          texCtx.fill();
+
+          // Upper teeth row
+          texCtx.fillStyle = 'rgba(252, 248, 244, 0.95)';
+          texCtx.fillRect(mouthX - mw * 0.65, mouthY - 1, mw * 1.3, Math.min(6, mOpen * 7));
+        }
+
+        // Rosy Smiling Lips
+        texCtx.strokeStyle = 'rgba(195, 52, 68, 0.92)';
+        texCtx.lineWidth = 3.6;
+        texCtx.lineCap = 'round';
+        // Lower lip
         texCtx.beginPath();
-        texCtx.ellipse(mouthX, mouthY + 2, w * 0.022, h * (0.013 * mOpen), 0, 0, Math.PI * 2);
-        texCtx.fill();
+        texCtx.moveTo(mouthX - mw, smileCornerY);
+        texCtx.quadraticCurveTo(mouthX, smileCenterY + 2, mouthX + mw, smileCornerY);
+        texCtx.stroke();
+        // Upper lip cupid's bow
+        texCtx.beginPath();
+        texCtx.moveTo(mouthX - mw, smileCornerY);
+        texCtx.quadraticCurveTo(mouthX, mouthY - 4, mouthX + mw, smileCornerY);
+        texCtx.stroke();
 
-        // Upper teeth line
-        texCtx.fillStyle = `rgba(245, 240, 236, ${mOpen * 0.90})`;
-        texCtx.fillRect(mouthX - w * 0.013, mouthY - 1, w * 0.026, 3.5 * mOpen);
+        // Cheek smile creases / dimples
+        texCtx.strokeStyle = 'rgba(165, 52, 68, 0.45)';
+        texCtx.lineWidth = 2.0;
+        texCtx.beginPath();
+        texCtx.arc(mouthX - mw - 3, smileCornerY + 1, 4, 1.2, 2.8);
+        texCtx.arc(mouthX + mw + 3, smileCornerY + 1, 4, 0.3, 1.9);
+        texCtx.stroke();
 
-        // Defined lip border
-        texCtx.strokeStyle = `rgba(165, 72, 82, ${mOpen * 0.85})`;
+      } else if (state.expression === 'sad' || state.expression === 'crying') {
+        // Sad / Crying Frown (Corners pulled DOWN):
+        const frownCornerY = mouthY + 11;
+        const frownCenterY = mouthY - 2 + mOpen * 10;
+
+        if (mOpen > 0.04) {
+          // Inner mouth opening while frowning
+          texCtx.fillStyle = 'rgba(48, 14, 18, 0.95)';
+          texCtx.beginPath();
+          texCtx.moveTo(mouthX - mw * 0.9, frownCornerY);
+          texCtx.quadraticCurveTo(mouthX, frownCenterY, mouthX + mw * 0.9, frownCornerY);
+          texCtx.quadraticCurveTo(mouthX, frownCenterY + 12 * mOpen, mouthX - mw * 0.9, frownCornerY);
+          texCtx.fill();
+
+          // Upper teeth
+          texCtx.fillStyle = 'rgba(240, 235, 230, 0.85)';
+          texCtx.fillRect(mouthX - mw * 0.5, frownCenterY - 1, mw * 1.0, 3 * mOpen);
+        }
+
+        // Sorrowful downturned lips
+        texCtx.strokeStyle = 'rgba(135, 55, 65, 0.90)';
+        texCtx.lineWidth = 3.6;
+        texCtx.lineCap = 'round';
+        texCtx.beginPath();
+        texCtx.moveTo(mouthX - mw * 0.9, frownCornerY);
+        texCtx.quadraticCurveTo(mouthX, frownCenterY - 2, mouthX + mw * 0.9, frownCornerY);
+        texCtx.stroke();
+
+        // Downturned corner creases
+        texCtx.strokeStyle = 'rgba(95, 40, 48, 0.55)';
         texCtx.lineWidth = 2.2;
         texCtx.beginPath();
-        texCtx.ellipse(mouthX, mouthY + 2, w * 0.024, h * (0.014 * mOpen), 0, 0, Math.PI * 2);
+        texCtx.moveTo(mouthX - mw * 0.9, frownCornerY - 2);
+        texCtx.lineTo(mouthX - mw * 0.9 - 4, frownCornerY + 5);
+        texCtx.moveTo(mouthX + mw * 0.9, frownCornerY - 2);
+        texCtx.lineTo(mouthX + mw * 0.9 + 4, frownCornerY + 5);
         texCtx.stroke();
-        texCtx.restore();
+
+        // Trembling chin shadow
+        texCtx.beginPath();
+        texCtx.arc(mouthX, mouthY + 18, 10, 0.2, Math.PI - 0.2);
+        texCtx.stroke();
+
+      } else {
+        // Neutral talking mouth:
+        if (mOpen > 0.04) {
+          texCtx.fillStyle = 'rgba(45, 14, 18, 0.95)';
+          texCtx.beginPath();
+          texCtx.ellipse(mouthX, mouthY + 2, mw * 0.9, h * (0.013 * mOpen), 0, 0, Math.PI * 2);
+          texCtx.fill();
+
+          texCtx.fillStyle = 'rgba(245, 240, 236, 0.90)';
+          texCtx.fillRect(mouthX - mw * 0.55, mouthY - 1, mw * 1.1, 3.5 * mOpen);
+        }
+
+        texCtx.strokeStyle = 'rgba(165, 72, 82, 0.85)';
+        texCtx.lineWidth = 2.6;
+        texCtx.beginPath();
+        texCtx.ellipse(mouthX, mouthY + 2, mw, Math.max(3, h * (0.014 * mOpen)), 0, 0, Math.PI * 2);
+        texCtx.stroke();
+      }
+      texCtx.restore();
+
+      // --- E. EYE BLINKING (Drawn LAST over eyes so eyelids close 100% cleanly!) ---
+      // If eye is open, draw pupil sparkle:
+      if (state.blinkValue < 0.25) {
+        [eyeLeftX, eyeRightX].forEach((ex) => {
+          texCtx.save();
+          texCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+          texCtx.beginPath();
+          texCtx.arc(ex - 3, eyeY - 2, 2.5, 0, Math.PI * 2);
+          texCtx.fill();
+          texCtx.restore();
+        });
+      }
+
+      // If blinking, eyelid closes fully and opens:
+      if (state.blinkValue > 0.02) {
+        const lidProgress = Math.min(1.0, state.blinkValue);
+        [eyeLeftX, eyeRightX].forEach((ex) => {
+          texCtx.save();
+          // Flesh-toned upper eyelid sliding down over the eye socket
+          texCtx.fillStyle = `rgba(182, 138, 122, ${Math.min(1.0, lidProgress * 1.5)})`;
+          texCtx.beginPath();
+          texCtx.ellipse(ex, eyeY, w * 0.027, h * (0.020 * lidProgress), 0, 0, Math.PI * 2);
+          texCtx.fill();
+
+          // Upper eyelid crease line
+          texCtx.strokeStyle = `rgba(110, 75, 68, ${Math.min(0.7, lidProgress * 0.9)})`;
+          texCtx.lineWidth = 1.8;
+          texCtx.beginPath();
+          texCtx.arc(ex, eyeY - h * 0.010, w * 0.024, 0.2, Math.PI - 0.2);
+          texCtx.stroke();
+
+          // Dark lush lash line along the bottom lid edge
+          texCtx.strokeStyle = `rgba(25, 14, 12, ${Math.min(1.0, lidProgress * 1.6)})`;
+          texCtx.lineWidth = 4.0;
+          texCtx.lineCap = 'round';
+          texCtx.beginPath();
+          texCtx.arc(ex, eyeY + (lidProgress * 4.0), w * 0.025, 0.10, Math.PI - 0.10);
+          texCtx.stroke();
+
+          // Micro lash fringe
+          texCtx.lineWidth = 2.0;
+          [-0.016, -0.008, 0, 0.008, 0.016].forEach((offset) => {
+            texCtx.beginPath();
+            texCtx.moveTo(ex + w * offset, eyeY + (lidProgress * 4.0));
+            texCtx.lineTo(ex + w * offset * 1.15, eyeY + (lidProgress * 4.0) + 3.5);
+            texCtx.stroke();
+          });
+
+          texCtx.restore();
+        });
       }
 
       dynamicTexture.needsUpdate = true;
@@ -2418,21 +2589,26 @@
         if (!state.isBlinking && elapsed - state.lastBlinkTime > state.nextBlinkInterval) {
           state.isBlinking = true;
           state.lastBlinkTime = elapsed;
-          state.nextBlinkInterval = 2.6 + Math.random() * 2.2;
+          state.nextBlinkInterval = 2.4 + Math.random() * 2.0;
         }
       }
 
       if (state.isBlinking) {
-        const blinkProgress = (elapsed - state.lastBlinkTime) / 0.18;
-        if (blinkProgress <= 0.5) {
-          state.blinkValue = blinkProgress * 2;
+        // Natural 0.24 second blink
+        const blinkProgress = (elapsed - state.lastBlinkTime) / 0.24;
+        if (blinkProgress <= 0.45) {
+          // Closing eyelid
+          state.blinkValue = blinkProgress / 0.45;
+        } else if (blinkProgress <= 0.60) {
+          // Fully closed pause
+          state.blinkValue = 1.0;
         } else if (blinkProgress <= 1.0) {
-          state.blinkValue = (1.0 - blinkProgress) * 2;
+          // Opening eyelid
+          state.blinkValue = (1.0 - blinkProgress) / 0.40;
         } else {
           state.blinkValue = 0;
           state.isBlinking = false;
         }
-        updateFaceTexture();
       }
     }
 
@@ -2465,8 +2641,7 @@
     function setOutfit(outfitName) {
       state.outfit = outfitName;
       const isRed = outfitName === 'red_gown';
-      gownUniforms.uGownActive.value = isRed ? 1.0 : 0.0;
-      if (characterMaterial) characterMaterial.needsUpdate = true;
+      if (frockMesh) frockMesh.visible = isRed;
 
       btnOutfitRed.classList.toggle('active', isRed);
       btnOutfitRed.textContent = isRed ? '💃 Red Gown (Active)' : '💃 Red Gown';
@@ -2648,29 +2823,31 @@
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
 
-      // Update gown uniforms
-      gownUniforms.uTime.value = elapsed;
-
       // Smooth AnimationMixer update
       if (mixer) mixer.update(delta);
 
-      // Eye blinking
+      // Eye blinking (smooth close and open)
       handleBlinking(delta, elapsed);
 
-      // Continuous or Voice-activated Talking Mouth Visemes
+      // Continuous or Voice-activated Talking Mouth & Lip Movement
       if (state.continuousTalking) {
-        state.speechViseme = (Math.sin(elapsed * 12) * 0.5 + 0.5) * (0.6 + 0.4 * Math.sin(elapsed * 4));
-        updateFaceTexture();
+        // Multi-frequency natural speech cadence
+        const speechBeat = (Math.sin(elapsed * 10.8) * 0.45 + 0.45) * (0.65 + 0.35 * Math.sin(elapsed * 3.6));
+        state.speechViseme = speechBeat;
       } else if (state.isSpeaking) {
         state.speechViseme = Math.abs(Math.sin(elapsed * 18)) * 0.85 + Math.sin(elapsed * 8) * 0.15;
-        updateFaceTexture();
+      } else {
+        // Subtle micro-lip idle breathing movement
+        state.speechViseme = Math.max(0, Math.sin(elapsed * 2.5) * 0.08);
       }
 
       // Animated Streaming Tears when Crying
       if (state.expression === 'crying') {
         state.tearProgress = (state.tearProgress + delta * 0.65) % 1.0;
-        updateFaceTexture();
       }
+
+      // Render facial texture changes simultaneously (lips moving, blinking, tears, smile/frown)
+      updateFaceTexture();
 
       controls.update();
       renderer.render(scene, camera);
